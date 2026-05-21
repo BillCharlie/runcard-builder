@@ -519,6 +519,7 @@
       selectedRecipeId: "",
       linkedEtchRecipes: [],
       linkedCleans: [],
+      linkedReworks: [],
       steps: section.steps.map((step) => normalizeStep(step, "row"))
     };
   }
@@ -565,6 +566,10 @@
 
   function cleanById(id) {
     return data.cleanRecipes.find((r) => r.id === id);
+  }
+
+  function reworkById(id) {
+    return REWORK_SECTIONS.find((r) => r.id === id);
   }
 
   function hasRecipeRecord(step) {
@@ -657,6 +662,7 @@
     card.linkedEtchRecipes = restored.linkedEtchRecipes;
     card.linkedEtchRecipe = null;
     card.linkedCleans = restored.linkedCleans;
+    card.linkedReworks = restored.linkedReworks;
     card.steps = restored.steps;
   }
 
@@ -670,7 +676,7 @@
 
   function renderTemplateList() {
     const search = els.templateSearch.value.trim().toLowerCase();
-    const allSections = [...data.sections, ...REWORK_SECTIONS];
+    const allSections = data.sections;
     const filtered = allSections.filter((section) => {
       const haystack = `${section.title} ${section.steps.map((s) => s.name).join(" ")}`.toLowerCase();
       return !search || haystack.includes(search);
@@ -780,8 +786,10 @@
       } else {
         groups.forEach((g) => els.recipeBrowserCards.appendChild(buildEtchRecipeCard(g, "e16-etch")));
       }
-    } else {
+    } else if (activeRecipeTab === "clean") {
       data.cleanRecipes.forEach((clean) => els.recipeBrowserCards.appendChild(buildCleanRecipeCard(clean)));
+    } else if (activeRecipeTab === "rework") {
+      REWORK_SECTIONS.forEach((rework) => els.recipeBrowserCards.appendChild(buildReworkRecipeCard(rework)));
     }
   }
 
@@ -990,6 +998,37 @@
     return card;
   }
 
+  function buildReworkRecipeCard(rework) {
+    const card = document.createElement("div");
+    card.className = "recipe-browser-card rework";
+
+    const head = document.createElement("div");
+    head.className = "recipe-browser-head";
+    const titleEl = document.createElement("div");
+    titleEl.className = "recipe-browser-title";
+    setText(titleEl, rework.name || rework.title);
+    const badge = document.createElement("span");
+    badge.className = "recipe-browser-badge rework";
+    setText(badge, "Rework");
+    head.append(titleEl, badge);
+
+    const body = document.createElement("div");
+    body.className = "recipe-browser-body";
+    rework.steps.forEach((step) => body.appendChild(buildRecipeStepRow(step)));
+
+    const footer = document.createElement("div");
+    footer.className = "recipe-browser-footer";
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.className = "small-button recipe-apply-btn";
+    setText(applyBtn, pendingRecipeCardId ? "Add ↵" : "Add Rework");
+    applyBtn.addEventListener("click", () => applyRecipeFromBrowser("rework", rework.id));
+    footer.appendChild(applyBtn);
+
+    card.append(head, body, footer);
+    return card;
+  }
+
   function applyRecipeFromBrowser(type, id) {
     let keepAdding = false;
     if (type === "photo") {
@@ -1009,6 +1048,22 @@
         }
       }
     } else {
+      if (type === "rework") {
+        if (pendingRecipeCardId) {
+          const card = state.cards.find((c) => c.id === pendingRecipeCardId);
+          if (card) {
+            if (!card.linkedReworks) card.linkedReworks = [];
+            card.linkedReworks.push(id);
+            keepAdding = true;
+            saveState();
+            renderCards();
+          }
+        }
+        if (!keepAdding) pendingRecipeCardId = null;
+        renderPendingBanner();
+        renderRecipeBrowserCards();
+        return;
+      }
       if (pendingRecipeCardId) {
         const card = state.cards.find((c) => c.id === pendingRecipeCardId);
         if (card) {
@@ -1106,6 +1161,13 @@
       node.querySelector(".add-clean-to-step").addEventListener("click", () => {
         pendingRecipeCardId = card.id;
         setActiveRecipeTab("clean");
+        renderPendingBanner();
+        els.recipeBrowserCards.closest(".panel-section").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      node.querySelector(".add-rework-to-step").addEventListener("click", () => {
+        pendingRecipeCardId = card.id;
+        setActiveRecipeTab("rework");
         renderPendingBanner();
         els.recipeBrowserCards.closest(".panel-section").scrollIntoView({ behavior: "smooth", block: "start" });
       });
@@ -1230,6 +1292,29 @@
         clean.machine
       ].filter(Boolean).join("   "));
       section.append(hdr, det);
+      container.appendChild(section);
+    });
+
+    (card.linkedReworks || []).forEach((reworkId, idx) => {
+      const rework = reworkById(reworkId);
+      if (!rework) return;
+      const section = document.createElement("div");
+      section.className = "linked-recipe-section rework";
+      const hdr = document.createElement("div");
+      hdr.className = "linked-recipe-header";
+      const lbl = document.createElement("span");
+      setText(lbl, `Rework — ${rework.name || rework.title}`);
+      const rmBtn = document.createElement("button");
+      rmBtn.type = "button";
+      rmBtn.className = "small-button danger-text";
+      setText(rmBtn, "× Remove");
+      rmBtn.addEventListener("click", () => { card.linkedReworks.splice(idx, 1); saveState(); renderCards(); });
+      hdr.append(lbl, rmBtn);
+
+      const rows = document.createElement("div");
+      rows.className = "rework-linked-steps";
+      rework.steps.forEach((step) => rows.appendChild(buildRecipeStepRow(step)));
+      section.append(hdr, rows);
       container.appendChild(section);
     });
   }
@@ -1381,16 +1466,17 @@
       ["Owner", state.meta.owner || ""],
       ["Generated", now.toLocaleString()],
       [],
-      ["Step", "Title", "COT-DEV Recipe", "Etch Recipes", "Clean Recipes"]
+      ["Step", "Title", "COT-DEV Recipe", "Etch Recipes", "Clean Recipes", "Rework Recipes"]
     ];
     state.cards.forEach((card, idx) => {
       const recipe = card.selectedRecipeId ? recipeById(card.selectedRecipeId) : null;
       const etchLabel = linkedEtchRecipes(card).map((etch) => `${etch.id} – ${etch.name}`).join(", ");
       const cleanLabel = (card.linkedCleans || []).map((id) => cleanById(id)?.name || id).join(", ");
-      coverRows.push([idx + 1, card.title, recipe ? cleanRecipeShortLabel(recipe) : "—", etchLabel, cleanLabel]);
+      const reworkLabel = (card.linkedReworks || []).map((id) => reworkById(id)?.name || id).join(", ");
+      coverRows.push([idx + 1, card.title, recipe ? cleanRecipeShortLabel(recipe) : "—", etchLabel, cleanLabel, reworkLabel]);
     });
     const coverSheet = XLSX.utils.aoa_to_sheet(coverRows);
-    coverSheet["!cols"] = [{ wch: 8 }, { wch: 30 }, { wch: 22 }, { wch: 26 }, { wch: 28 }];
+    coverSheet["!cols"] = [{ wch: 8 }, { wch: 30 }, { wch: 22 }, { wch: 26 }, { wch: 28 }, { wch: 30 }];
     XLSX.utils.book_append_sheet(workbook, coverSheet, safeWorksheetName("Index", usedSheetNames));
 
     // ── One sheet per card ─────────────────────────────────────────────────────
@@ -1429,6 +1515,17 @@
         rows.push([`Clean: ${clean.name}`]);
         rows.push(["Machine", "Chemicals", "Ratio", "Temp (℃)", "Time (s)", "Usage"]);
         rows.push([clean.machine, clean.chemicals, clean.ratio, clean.temperature, clean.time, clean.usage]);
+      });
+
+      (card.linkedReworks || []).forEach((reworkId) => {
+        const rework = reworkById(reworkId);
+        if (!rework) return;
+        rows.push([]);
+        rows.push([`Rework: ${rework.name || rework.title}`]);
+        rows.push(["No.", "Substep", "Recipe", "Parameter", "Machine", "Condition", "Note"]);
+        rework.steps.forEach((step, idx) => {
+          rows.push([idx + 1, step.name || "", step.recipe || "", visibleStepParams(step), step.machine || "", step.condition || "", step.note || ""]);
+        });
       });
 
       const ws = XLSX.utils.aoa_to_sheet(rows);

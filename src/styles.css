@@ -737,6 +737,7 @@ input:focus, select:focus, textarea:focus {
 .recipe-browser-card.manual { border-left-color: var(--amber); }
 .recipe-browser-card.clean  { border-left-color: var(--blue); }
 .recipe-browser-card.etch   { border-left-color: #7c3aed; }
+.recipe-browser-card.rework { border-left-color: var(--red); }
 
 .recipe-browser-head {
   display: flex;
@@ -770,6 +771,7 @@ input:focus, select:focus, textarea:focus {
 .recipe-browser-badge.manual { background: var(--amber-soft);  color: var(--amber); }
 .recipe-browser-badge.clean  { background: var(--blue-soft);   color: var(--blue); }
 .recipe-browser-badge.etch   { background: #f3e8ff; color: #7c3aed; }
+.recipe-browser-badge.rework { background: var(--red-soft); color: var(--red); }
 
 .recipe-browser-body {
   padding: 8px 10px;
@@ -875,6 +877,10 @@ input:focus, select:focus, textarea:focus {
   border-left-color: var(--teal);
 }
 
+.linked-recipe-section.rework {
+  border-left-color: var(--red);
+}
+
 .linked-recipe-header {
   display: flex;
   align-items: center;
@@ -901,6 +907,10 @@ input:focus, select:focus, textarea:focus {
 }
 
 .etch-linked-table {
+  padding: 6px 10px 8px;
+}
+
+.rework-linked-steps {
   padding: 6px 10px 8px;
 }
 
