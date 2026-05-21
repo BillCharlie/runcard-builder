@@ -1465,6 +1465,20 @@
     return name;
   }
 
+  function appendCoatingSpinSpeedTable(rows) {
+    rows.push([]);
+    const titleRow = rows.length;
+    rows.push(["Coating 轉速表 #67", "", "", "", "", ""]);
+    rows.push(["段速", "轉速設定", "加減速時間", "運轉時間", "", ""]);
+    rows.push(["1\n（紅色有參數）", "300", "40", "20", "", ""]);
+    rows.push(["2", "800", "40", "40", "", ""]);
+    rows.push(["3", "主轉 spin coater", "40", "300", "", ""]);
+    rows.push(["4", "800", "40", "40", "", ""]);
+    rows.push(["5", "300", "40", "20", "", ""]);
+    rows.push(["（藍色沒有參數）", "", "", "", "", ""]);
+    return titleRow;
+  }
+
   function exportExcel() {
     if (!window.XLSX) { alert("Excel export library is not loaded."); return; }
     const now = new Date();
@@ -1487,8 +1501,12 @@
       const reworkLabel = (card.linkedReworks || []).map((id) => reworkById(id)?.name || id).join(", ");
       coverRows.push([idx + 1, card.title, recipe ? cleanRecipeShortLabel(recipe) : "—", etchLabel, cleanLabel, reworkLabel]);
     });
+    const coatingTableTitleRow = appendCoatingSpinSpeedTable(coverRows);
     const coverSheet = XLSX.utils.aoa_to_sheet(coverRows);
-    coverSheet["!cols"] = [{ wch: 8 }, { wch: 30 }, { wch: 22 }, { wch: 26 }, { wch: 28 }, { wch: 30 }];
+    coverSheet["!cols"] = [{ wch: 16 }, { wch: 30 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 30 }];
+    coverSheet["!merges"] = [
+      { s: { r: coatingTableTitleRow, c: 0 }, e: { r: coatingTableTitleRow, c: 3 } }
+    ];
     XLSX.utils.book_append_sheet(workbook, coverSheet, safeWorksheetName("Index", usedSheetNames));
 
     // ── One sheet per card ─────────────────────────────────────────────────────

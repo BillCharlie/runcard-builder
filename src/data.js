@@ -2362,13 +2362,13 @@ window.RUN_CARD_DATA = {
       "chemicals": "HCl : H2O2 : H2O",
       "ratio": "1 : 1 : 6",
       "mix": "\uff08\u8a2d\u7e3d\u723280%\uff0910% : 10% : 60%",
-      "temperature": "75",
+      "temperature": "室温",
       "time": "600",
       "usage": "\u53bb\u9664\u91d1\u5c6c\u6c59\u67d3\u7269",
       "step": {
         "name": "SC-2 clean",
         "recipe": "",
-        "params": "HCl : H2O2 : H2O; 1 : 1 : 6; \uff08\u8a2d\u7e3d\u723280%\uff0910% : 10% : 60%; 75℃; 600",
+        "params": "HCl : H2O2 : H2O; 1 : 1 : 6; \uff08\u8a2d\u7e3d\u723280%\uff0910% : 10% : 60%; 室温; 600",
         "machine": "C06-02",
         "condition": "\u53bb\u9664\u91d1\u5c6c\u6c59\u67d3\u7269",
         "note": "Clean Receipe"
@@ -5587,7 +5587,7 @@ window.RUN_CARD_DATA = {
             "HCl : H2O2 : H2O",
             "1 : 1 : 6",
             "\uff08\u8a2d\u7e3d\u723280%\uff0910% : 10% : 60%",
-            "75",
+            "室温",
             "600",
             "\u53bb\u9664\u91d1\u5c6c\u6c59\u67d3\u7269"
           ]
