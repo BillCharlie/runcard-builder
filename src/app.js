@@ -567,6 +567,14 @@
     return data.cleanRecipes.find((r) => r.id === id);
   }
 
+  function hasRecipeRecord(step) {
+    return String(step.recipe || "").trim().length > 0;
+  }
+
+  function visibleStepParams(step) {
+    return hasRecipeRecord(step) ? "" : (step.params || "");
+  }
+
   function cleanRecipeShortLabel(recipe) {
     return (recipe.shortLabel || "").replace(/手動|手动/g, "Manual");
   }
@@ -1253,7 +1261,7 @@
 
       row.appendChild(textInput(step, "name", "cell-name"));
       row.appendChild(textInput(step, "recipe", "cell-recipe"));
-      row.appendChild(textInput(step, "params", "cell-params"));
+      row.appendChild(textInput(step, "params", "cell-params", { displayValue: visibleStepParams(step), disabled: hasRecipeRecord(step) }));
       row.appendChild(textInput(step, "machine", "cell-machine"));
       row.appendChild(textInput(step, "note", "cell-note"));
 
@@ -1268,15 +1276,19 @@
     });
   }
 
-  function textInput(step, key, className) {
+  function textInput(step, key, className, options = {}) {
     const input = document.createElement("input");
     input.type = "text";
     input.className = className;
-    input.value = step[key] || "";
+    input.value = Object.prototype.hasOwnProperty.call(options, "displayValue") ? options.displayValue : (step[key] || "");
+    input.disabled = !!options.disabled;
     input.addEventListener("input", () => {
       step[key] = input.value;
       if (key === "name") step.type = classifyStep(step);
       saveState();
+    });
+    input.addEventListener("change", () => {
+      if (key === "recipe") renderCards();
     });
     return input;
   }
@@ -1391,7 +1403,7 @@
       let subIndex = 0;
       card.steps.filter((s) => s.enabled).forEach((step) => {
         subIndex++;
-        rows.push([`${cardIndex + 1}.${subIndex}`, step.name || "", step.recipe || "", step.params || "", step.machine || "", step.condition || "", step.note || ""]);
+        rows.push([`${cardIndex + 1}.${subIndex}`, step.name || "", step.recipe || "", visibleStepParams(step), step.machine || "", step.condition || "", step.note || ""]);
       });
 
       if (card.linkedEtchRecipe) {
