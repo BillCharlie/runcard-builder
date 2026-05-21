@@ -147,7 +147,7 @@ window.RUN_CARD_DATA = {
           "no": "7",
           "name": "ADI",
           "recipe": "",
-          "params": "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+          "params": "",
           "machine": "OM",
           "condition": "",
           "note": "",
