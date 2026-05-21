@@ -314,7 +314,7 @@ window.RUN_CARD_DATA = {
           "no": "4",
           "name": "ADI",
           "recipe": "",
-          "params": "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+          "params": "",
           "machine": "OM",
           "condition": "",
           "note": "",
@@ -494,7 +494,7 @@ window.RUN_CARD_DATA = {
           "no": "4",
           "name": "ADI",
           "recipe": "",
-          "params": "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+          "params": "",
           "machine": "OM",
           "condition": "",
           "note": "",
@@ -674,7 +674,7 @@ window.RUN_CARD_DATA = {
           "no": "4",
           "name": "ADI",
           "recipe": "",
-          "params": "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+          "params": "",
           "machine": "OM",
           "condition": "",
           "note": "",
@@ -893,7 +893,7 @@ window.RUN_CARD_DATA = {
           "no": "5",
           "name": "ADI",
           "recipe": "",
-          "params": "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+          "params": "",
           "machine": "OM",
           "condition": "",
           "note": "",
@@ -2260,6 +2260,44 @@ window.RUN_CARD_DATA = {
   ],
   "cleanRecipes": [
     {
+      "id": "ace-remove-pr",
+      "name": "化學實驗室（ACE）Remove PR",
+      "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
+      "chemicals": "ACE",
+      "ratio": "",
+      "mix": "",
+      "temperature": "\u5ba4\u6eab",
+      "time": "10 min",
+      "usage": "Remove PR",
+      "step": {
+        "name": "Remove PR",
+        "recipe": "",
+        "params": "ACE10min",
+        "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
+        "condition": "",
+        "note": "Clean Receipe"
+      }
+    },
+    {
+      "id": "ace-ipa-wafer-clean",
+      "name": "化學實驗室（ACE+IPA）wafer clean",
+      "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
+      "chemicals": "ACE / DIwater / IPA",
+      "ratio": "",
+      "mix": "",
+      "temperature": "\u5ba4\u6eab",
+      "time": "ACE 5 min + IPA 5 min",
+      "usage": "Wafer clean",
+      "step": {
+        "name": "Wafer clean",
+        "recipe": "",
+        "params": "ACE(\u97075min) \u2014>DIwater->IPA(\u97075min)->DIwater",
+        "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
+        "condition": "",
+        "note": "Clean Receipe"
+      }
+    },
+    {
       "id": "sc-1",
       "name": "SC-1",
       "machine": "C06-01",
@@ -2600,7 +2638,7 @@ window.RUN_CARD_DATA = {
             "7",
             "ADI",
             "",
-            "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+            "",
             "OM",
             "",
             ""
@@ -2768,7 +2806,7 @@ window.RUN_CARD_DATA = {
             "4",
             "ADI",
             "",
-            "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+            "",
             "OM",
             "",
             ""
@@ -2948,7 +2986,7 @@ window.RUN_CARD_DATA = {
             "4",
             "ADI",
             "",
-            "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+            "",
             "OM",
             "",
             ""
@@ -3128,7 +3166,7 @@ window.RUN_CARD_DATA = {
             "4",
             "ADI",
             "",
-            "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+            "",
             "OM",
             "",
             ""
@@ -3344,7 +3382,7 @@ window.RUN_CARD_DATA = {
             "5",
             "ADI",
             "",
-            "\uff08\u6c92\u986f\u958bDose\u5291\u91cf\u4e0d\u591f\u672c\u6b21\u9700\u52a0\u986f\uff0c\u904e\u986fDose\u5291\u91cf\u904e\u5ea6\uff09",
+            "",
             "OM",
             "",
             ""

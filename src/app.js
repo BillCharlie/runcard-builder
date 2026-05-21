@@ -936,9 +936,17 @@
 
     const body = document.createElement("div");
     body.className = "recipe-browser-body";
+    const temperature = String(clean.temperature || "").trim();
+    const time = String(clean.time || "").trim();
+    const temperatureLabel = temperature
+      ? (/^\d+(?:\.\d+)?$/.test(temperature) ? `${temperature}°C` : temperature)
+      : "";
+    const timeLabel = time
+      ? (/^\d+(?:\.\d+)?$/.test(time) ? `${time}s` : time)
+      : "";
     [
       clean.chemicals && clean.ratio ? `${clean.chemicals}  (${clean.ratio})` : clean.chemicals,
-      [clean.temperature ? `${clean.temperature}°C` : null, clean.time ? `${clean.time}s` : null].filter(Boolean).join(" · "),
+      [temperatureLabel, timeLabel].filter(Boolean).join(" · "),
       clean.machine,
       clean.usage
     ]
