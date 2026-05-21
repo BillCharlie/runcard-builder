@@ -2318,7 +2318,7 @@ window.RUN_CARD_DATA = {
     },
     {
       "id": "boe-dilute",
-      "name": "SC-4 (Dilute BOE 1:10)",
+      "name": "化學實驗室 (Dilute BOE 1:10)",
       "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
       "chemicals": "BOE : H2O",
       "ratio": "1 : 10",
@@ -2327,7 +2327,7 @@ window.RUN_CARD_DATA = {
       "time": "\u6d78\u6ce230 sec",
       "usage": "\u53bb\u9664native Oxide / \u53bb\u9664\u6e96\u4f4d\u6c27\u5316\u5c42",
       "step": {
-        "name": "SC-4 (Dilute BOE) clean",
+        "name": "化學實驗室 (Dilute BOE) clean",
         "recipe": "",
         "params": "Dilute BOE 1:10; \u5ba4\u6eab; \u6d78\u6ce230 sec",
         "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
