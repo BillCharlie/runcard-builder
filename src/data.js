@@ -992,9 +992,22 @@ window.RUN_CARD_DATA = {
           "enabled": true
         },
         {
+          "id": "step-5-r91-o2",
+          "sourceRow": 91.5,
+          "no": "13",
+          "name": "O2 Plasma",
+          "recipe": "#13",
+          "params": "",
+          "machine": "E08",
+          "condition": "",
+          "note": "",
+          "type": "clean",
+          "enabled": true
+        },
+        {
           "id": "step-5-r92",
           "sourceRow": 92,
-          "no": "13",
+          "no": "14",
           "name": "ADI",
           "recipe": "",
           "params": "\u78ba\u8a8d\u91d1\u5c6cliftoff\u6b63\u5e38\uff0c\u5149\u963b\u53bb\u9664\u5e72\u51c0",
@@ -1007,7 +1020,7 @@ window.RUN_CARD_DATA = {
         {
           "id": "step-5-r93",
           "sourceRow": 93,
-          "no": "14",
+          "no": "15",
           "name": "RTA",
           "recipe": "",
           "params": "850\u2103 / 30 sec, N2 20 SLPM",
@@ -1020,7 +1033,7 @@ window.RUN_CARD_DATA = {
         {
           "id": "step-5-r94",
           "sourceRow": 94,
-          "no": "15",
+          "no": "16",
           "name": "ADI",
           "recipe": "",
           "params": "\u5c0d\u6bd4liftoff\u524d\u5f8c\u91d1\u5c6c",
@@ -1033,7 +1046,7 @@ window.RUN_CARD_DATA = {
         {
           "id": "step-5-r95",
           "sourceRow": 95,
-          "no": "16",
+          "no": "17",
           "name": "TLM Measurement",
           "recipe": "",
           "params": "VD = -1 ~ +1 V",
@@ -1326,9 +1339,22 @@ window.RUN_CARD_DATA = {
           "enabled": true
         },
         {
+          "id": "step-6-r119-o2",
+          "sourceRow": 119.5,
+          "no": "16",
+          "name": "O2 Plasma",
+          "recipe": "#13",
+          "params": "",
+          "machine": "E08",
+          "condition": "",
+          "note": "",
+          "type": "clean",
+          "enabled": true
+        },
+        {
           "id": "step-6-r120",
           "sourceRow": 120,
-          "no": "16",
+          "no": "17",
           "name": "ADI",
           "recipe": "",
           "params": "",
@@ -1341,7 +1367,7 @@ window.RUN_CARD_DATA = {
         {
           "id": "step-6-r121",
           "sourceRow": 121,
-          "no": "17",
+          "no": "18",
           "name": "Check metal thickness",
           "recipe": "",
           "params": "scan rate\uff1a2um/sec",
@@ -1855,9 +1881,22 @@ window.RUN_CARD_DATA = {
           "enabled": true
         },
         {
+          "id": "step-8-r166-o2",
+          "sourceRow": 166.5,
+          "no": "13",
+          "name": "O2 Plasma",
+          "recipe": "#13",
+          "params": "",
+          "machine": "E08",
+          "condition": "",
+          "note": "",
+          "type": "clean",
+          "enabled": true
+        },
+        {
           "id": "step-8-r167",
           "sourceRow": 167,
-          "no": "13",
+          "no": "14",
           "name": "ADI",
           "recipe": "",
           "params": "",
@@ -1870,7 +1909,7 @@ window.RUN_CARD_DATA = {
         {
           "id": "step-8-r168",
           "sourceRow": 168,
-          "no": "14",
+          "no": "15",
           "name": "Check metal thickness",
           "recipe": "",
           "params": "scan rate\uff1a2um/sec",
@@ -1883,7 +1922,7 @@ window.RUN_CARD_DATA = {
         {
           "id": "step-8-r169",
           "sourceRow": 169,
-          "no": "15",
+          "no": "16",
           "name": "Device Measurement",
           "recipe": "",
           "params": "",
@@ -3473,9 +3512,21 @@ window.RUN_CARD_DATA = {
           ]
         },
         {
-          "rowNumber": 92,
+          "rowNumber": 91.5,
           "cells": [
             "13",
+            "O2 Plasma",
+            "#13",
+            "",
+            "E08",
+            "",
+            ""
+          ]
+        },
+        {
+          "rowNumber": 92,
+          "cells": [
+            "14",
             "ADI",
             "",
             "\u78ba\u8a8d\u91d1\u5c6cliftoff\u6b63\u5e38\uff0c\u5149\u963b\u53bb\u9664\u5e72\u51c0",
@@ -3487,7 +3538,7 @@ window.RUN_CARD_DATA = {
         {
           "rowNumber": 93,
           "cells": [
-            "14",
+            "15",
             "RTA",
             "",
             "850\u2103 / 30 sec, N2 20 SLPM",
@@ -3499,7 +3550,7 @@ window.RUN_CARD_DATA = {
         {
           "rowNumber": 94,
           "cells": [
-            "15",
+            "16",
             "ADI",
             "",
             "\u5c0d\u6bd4liftoff\u524d\u5f8c\u91d1\u5c6c",
@@ -3511,7 +3562,7 @@ window.RUN_CARD_DATA = {
         {
           "rowNumber": 95,
           "cells": [
-            "16",
+            "17",
             "TLM Measurement",
             "",
             "VD = -1 ~ +1 V",
@@ -3785,9 +3836,21 @@ window.RUN_CARD_DATA = {
           ]
         },
         {
-          "rowNumber": 120,
+          "rowNumber": 119.5,
           "cells": [
             "16",
+            "O2 Plasma",
+            "#13",
+            "",
+            "E08",
+            "",
+            ""
+          ]
+        },
+        {
+          "rowNumber": 120,
+          "cells": [
+            "17",
             "ADI",
             "",
             "",
@@ -3799,7 +3862,7 @@ window.RUN_CARD_DATA = {
         {
           "rowNumber": 121,
           "cells": [
-            "17",
+            "18",
             "Check metal thickness",
             "",
             "scan rate\uff1a2um/sec",
@@ -4301,9 +4364,21 @@ window.RUN_CARD_DATA = {
           ]
         },
         {
-          "rowNumber": 167,
+          "rowNumber": 166.5,
           "cells": [
             "13",
+            "O2 Plasma",
+            "#13",
+            "",
+            "E08",
+            "",
+            ""
+          ]
+        },
+        {
+          "rowNumber": 167,
+          "cells": [
+            "14",
             "ADI",
             "",
             "",
@@ -4315,7 +4390,7 @@ window.RUN_CARD_DATA = {
         {
           "rowNumber": 168,
           "cells": [
-            "14",
+            "15",
             "Check metal thickness",
             "",
             "scan rate\uff1a2um/sec",
@@ -4327,7 +4402,7 @@ window.RUN_CARD_DATA = {
         {
           "rowNumber": 169,
           "cells": [
-            "15",
+            "16",
             "Device Measurement",
             "",
             "",
