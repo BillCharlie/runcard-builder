@@ -21,18 +21,55 @@
       ]
     },
     {
-      id: "rework-pfi-heated",
-      title: "Rework (PFI38/PFI89 Heated)",
-      name: "Rework (PFI38/PFI89 Heated)",
-      tone: "",
-      sourceSheet: "Rework",
+  id: "rework-pfi-heated",
+  title: "Rework (PFI38/PFI89 Heated, Metal/Oxide Safe)",
+  name: "Rework (PFI38/PFI89 Heated, Metal/Oxide Safe)",
+  tone: "",
+  sourceSheet: "Rework",
+  sourceRow: "",
+  defaultRecipeId: "",
+  steps: [
+    {
+      id: "rw-h-r1",
       sourceRow: "",
-      defaultRecipeId: "",
-      steps: [
-        { id: "rw-h-r1", sourceRow: "", no: "1", name: "ACE strip (heated)", recipe: "", params: "ACE 75℃, 5 min", machine: "化學實驗室", condition: "", note: "PFI38 / PFI89, thick PR", type: "clean", enabled: true },
-        { id: "rw-h-r2", sourceRow: "", no: "2", name: "O2 Plasma", recipe: "#13", params: "Recipe #13", machine: "", condition: "", note: "選擇設備", type: "clean", enabled: true }
-      ]
+      no: "1",
+      name: "ACE strip (heated, no ultrasonic)",
+      recipe: "",
+      params: "ACE 75℃, 5–10 min",
+      machine: "化學實驗室",
+      condition: "If Metal exists",
+      note: "有 Metal 時禁止震盪，只能加熱去膠，避免金屬剝落或 pad / ohmic damage",
+      type: "clean",
+      enabled: true
     },
+    {
+      id: "rw-h-r2",
+      sourceRow: "",
+      no: "2",
+      name: "DI water rinse",
+      recipe: "",
+      params: "",
+      machine: "化學實驗室",
+      condition: "",
+      note: "ACE 後 DI rinse",
+      type: "clean",
+      enabled: true
+    },
+    {
+      id: "rw-h-r3",
+      sourceRow: "",
+      no: "3",
+      name: "O2 Plasma",
+      recipe: "#13",
+      params: "Recipe #13",
+      machine: "",
+      condition: "If Oxide exists",
+      note: "已有 Oxide 時，O2 Plasma 後不可接 BOE clean；此 Rework 直接結束",
+      type: "clean",
+      enabled: true
+    }
+  ]
+},
     {
       id: "rework-lor",
       title: "Rework (LOR)",
