@@ -2299,7 +2299,7 @@ window.RUN_CARD_DATA = {
     },
     {
       "id": "boe",
-      "name": "BOE",
+      "name": "SC-3 (pure BOE)",
       "machine": "C06-03",
       "chemicals": "HF : NH4F",
       "ratio": "1 : 7",
@@ -2308,12 +2308,31 @@ window.RUN_CARD_DATA = {
       "time": "\u4f9dOxide\u539a\u5ea6(100nm/1min)",
       "usage": "\u53bb\u9664native Oxide",
       "step": {
-        "name": "BOE clean",
+        "name": "SC-3 (pure BOE) clean",
         "recipe": "",
         "params": "HF : NH4F; 1 : 7; \uff08\u8a2d\u7e3d\u723280%\uff0910% : 70%; \u5ba4\u6eab; \u4f9dOxide\u539a\u5ea6(100nm/1min)",
         "machine": "C06-03",
         "condition": "\u53bb\u9664native Oxide",
         "note": "Clean Receipe"
+      }
+    },
+    {
+      "id": "boe-dilute",
+      "name": "SC-4 (Dilute BOE 1:10)",
+      "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
+      "chemicals": "BOE : H2O",
+      "ratio": "1 : 10",
+      "mix": "\uff08\u5316\u5b78\u5be6\u9a57\u5ba4\u5df2\u914d\u597d\uff09",
+      "temperature": "\u5ba4\u6eab",
+      "time": "\u6d78\u6ce230 sec",
+      "usage": "\u53bb\u9664native Oxide / \u53bb\u9664\u6e96\u4f4d\u6c27\u5316\u5c42",
+      "step": {
+        "name": "SC-4 (Dilute BOE) clean",
+        "recipe": "",
+        "params": "Dilute BOE 1:10; \u5ba4\u6eab; \u6d78\u6ce230 sec",
+        "machine": "\u5316\u5b78\u5be6\u9a57\u5ba4",
+        "condition": "\u53bb\u9664native Oxide / \u53bb\u9664\u6e96\u4f4d\u6c27\u5316\u5c42",
+        "note": "\u5316\u5b78\u5be6\u9a57\u5ba4\u5df2\u914d\u597d\u53ef\u76f4\u63a5\u53d6\u7528, \u7528Teflon\u88dd\uff08\u6d78\u6ce230 sec\uff09"
       }
     },
     {
