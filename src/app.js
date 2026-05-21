@@ -1579,7 +1579,7 @@
   function renderAll() {
     els.runcardTitle.value = state.meta.title || "";
     els.ownerInput.value = state.meta.owner || "";
-    setText(els.sourceLabel, sourceBaseName(data.sourceFile));
+    setText(els.sourceLabel, "");
     renderTemplateList();
     renderPendingBanner();
     renderRecipeBrowserCards();

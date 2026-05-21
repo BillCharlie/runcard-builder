@@ -80,6 +80,10 @@ button { cursor: pointer; }
   white-space: nowrap;
 }
 
+.brand-block span:empty {
+  display: none;
+}
+
 .top-actions,
 .builder-toolbar,
 .toolbar-group,
