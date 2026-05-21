@@ -1479,6 +1479,135 @@
     return titleRow;
   }
 
+  function excelCell(row, col) {
+    return XLSX.utils.encode_cell({ r: row, c: col });
+  }
+
+  function excelStyle(fill, fontColor = "FF1F2937", bold = false, horizontal = "center") {
+    return {
+      font: { color: { rgb: fontColor }, bold },
+      fill: { patternType: "solid", fgColor: { rgb: fill } },
+      alignment: { horizontal, vertical: "center", wrapText: true },
+      border: {
+        top: { style: "thin", color: { rgb: "FFD9E2EC" } },
+        right: { style: "thin", color: { rgb: "FFD9E2EC" } },
+        bottom: { style: "thin", color: { rgb: "FFD9E2EC" } },
+        left: { style: "thin", color: { rgb: "FFD9E2EC" } }
+      }
+    };
+  }
+
+  const excelStyles = {
+    title: excelStyle("FF1F4E78", "FFFFFFFF", true, "left"),
+    metaLabel: excelStyle("FFD9EAF7", "FF1F2937", true, "left"),
+    metaValue: excelStyle("FFF3F8FC", "FF1F2937", false, "left"),
+    indexHeader: excelStyle("FF5B9BD5", "FFFFFFFF", true),
+    indexBody: excelStyle("FFF8FBFD", "FF1F2937", false, "left"),
+    indexBodyAlt: excelStyle("FFEAF3F8", "FF1F2937", false, "left"),
+    processTitle: excelStyle("FF385723", "FFFFFFFF", true, "left"),
+    processHeader: excelStyle("FF548235", "FFFFFFFF", true),
+    processBody: excelStyle("FFE2F0D9", "FF1F2937", false, "left"),
+    cotDev: excelStyle("FFF4B183", "FF1F2937", true, "left"),
+    etchTitle: excelStyle("FF7030A0", "FFFFFFFF", true, "left"),
+    etchHeader: excelStyle("FFE4DFEC", "FF1F2937", true),
+    etchBody: excelStyle("FFF4F0F8", "FF1F2937", false, "left"),
+    cleanTitle: excelStyle("FF2F75B5", "FFFFFFFF", true, "left"),
+    cleanHeader: excelStyle("FFDDEBF7", "FF1F2937", true),
+    cleanBody: excelStyle("FFF2F8FC", "FF1F2937", false, "left"),
+    reworkTitle: excelStyle("FFC00000", "FFFFFFFF", true, "left"),
+    reworkHeader: excelStyle("FFFCE4D6", "FF1F2937", true),
+    reworkBody: excelStyle("FFFFF2EE", "FF1F2937", false, "left"),
+    coatingTitle: excelStyle("FFF8CBAD", "FF1F2937", true, "left"),
+    coatingHeader: excelStyle("FFFFF2CC", "FF1F2937", true),
+    coatingBody: excelStyle("FFFFF2CC"),
+    coatingRed: excelStyle("FFFF0000", "FFFFFFFF", true),
+    coatingBlue: excelStyle("FF4472C4", "FFFFFFFF", true)
+  };
+
+  function styleCell(ws, row, col, style) {
+    const addr = excelCell(row, col);
+    if (!ws[addr]) ws[addr] = { t: "s", v: "" };
+    ws[addr].s = style;
+  }
+
+  function styleRow(ws, row, startCol, endCol, style) {
+    for (let col = startCol; col <= endCol; col++) styleCell(ws, row, col, style);
+  }
+
+  function styleIndexSheet(ws, stepCount, coatingTableTitleRow) {
+    styleRow(ws, 0, 0, 5, excelStyles.title);
+    styleCell(ws, 1, 0, excelStyles.metaLabel);
+    styleCell(ws, 1, 1, excelStyles.metaValue);
+    styleCell(ws, 2, 0, excelStyles.metaLabel);
+    styleCell(ws, 2, 1, excelStyles.metaValue);
+    styleRow(ws, 4, 0, 5, excelStyles.indexHeader);
+    for (let row = 5; row < 5 + stepCount; row++) {
+      styleRow(ws, row, 0, 5, row % 2 ? excelStyles.indexBody : excelStyles.indexBodyAlt);
+    }
+
+    styleRow(ws, coatingTableTitleRow, 0, 3, excelStyles.coatingTitle);
+    styleRow(ws, coatingTableTitleRow + 1, 0, 3, excelStyles.coatingHeader);
+    for (let row = coatingTableTitleRow + 2; row <= coatingTableTitleRow + 6; row++) {
+      styleCell(ws, row, 0, excelStyles.coatingRed);
+      styleRow(ws, row, 1, 3, excelStyles.coatingBody);
+    }
+    styleCell(ws, coatingTableTitleRow + 7, 0, excelStyles.coatingBlue);
+    styleRow(ws, coatingTableTitleRow + 7, 1, 3, excelStyles.coatingBody);
+
+    ws["!rows"] = ws["!rows"] || [];
+    ws["!rows"][coatingTableTitleRow + 2] = { hpt: 34 };
+  }
+
+  function styleCardSheet(ws, rows) {
+    styleRow(ws, 0, 0, 6, excelStyles.processTitle);
+    let section = "process";
+    rows.forEach((row, idx) => {
+      const first = String(row[0] || "");
+      if (first === "COT-DEV Recipe") {
+        styleRow(ws, idx, 0, 6, excelStyles.cotDev);
+        return;
+      }
+      if (first === "No." && row[1] === "Substep") {
+        styleRow(ws, idx, 0, 6, section === "rework" ? excelStyles.reworkHeader : excelStyles.processHeader);
+        return;
+      }
+      if (/^\d+\.\d+$/.test(first)) {
+        styleRow(ws, idx, 0, 6, section === "rework" ? excelStyles.reworkBody : excelStyles.processBody);
+        return;
+      }
+      if (first.startsWith("Etch Recipe:")) {
+        section = "etch";
+        styleRow(ws, idx, 0, 6, excelStyles.etchTitle);
+        return;
+      }
+      if (first === "Parameter") {
+        styleRow(ws, idx, 0, Math.max(0, row.length - 1), excelStyles.etchHeader);
+        return;
+      }
+      if (section === "etch" && first && !first.startsWith("Clean:") && !first.startsWith("Rework:")) {
+        styleRow(ws, idx, 0, Math.max(0, row.length - 1), excelStyles.etchBody);
+        return;
+      }
+      if (first.startsWith("Clean:")) {
+        section = "clean";
+        styleRow(ws, idx, 0, 6, excelStyles.cleanTitle);
+        return;
+      }
+      if (first === "Machine" && row[1] === "Chemicals") {
+        styleRow(ws, idx, 0, 5, excelStyles.cleanHeader);
+        return;
+      }
+      if (section === "clean" && first) {
+        styleRow(ws, idx, 0, 5, excelStyles.cleanBody);
+        return;
+      }
+      if (first.startsWith("Rework:")) {
+        section = "rework";
+        styleRow(ws, idx, 0, 6, excelStyles.reworkTitle);
+      }
+    });
+  }
+
   function exportExcel() {
     if (!window.XLSX) { alert("Excel export library is not loaded."); return; }
     const now = new Date();
@@ -1507,6 +1636,7 @@
     coverSheet["!merges"] = [
       { s: { r: coatingTableTitleRow, c: 0 }, e: { r: coatingTableTitleRow, c: 3 } }
     ];
+    styleIndexSheet(coverSheet, state.cards.length, coatingTableTitleRow);
     XLSX.utils.book_append_sheet(workbook, coverSheet, safeWorksheetName("Index", usedSheetNames));
 
     // ── One sheet per card ─────────────────────────────────────────────────────
@@ -1560,11 +1690,12 @@
 
       const ws = XLSX.utils.aoa_to_sheet(rows);
       ws["!cols"] = [{ wch: 10 }, { wch: 34 }, { wch: 12 }, { wch: 40 }, { wch: 18 }, { wch: 20 }, { wch: 34 }];
+      styleCardSheet(ws, rows);
       const sheetName = safeWorksheetName(`${cardIndex + 1}. ${card.title}`, usedSheetNames);
       XLSX.utils.book_append_sheet(workbook, ws, sheetName);
     });
 
-    XLSX.writeFile(workbook, `${sanitizeFilename(title)}.xlsx`);
+    XLSX.writeFile(workbook, `${sanitizeFilename(title)}.xlsx`, { cellStyles: true });
   }
 
   // ── Events & Init ──────────────────────────────────────────────────────────
