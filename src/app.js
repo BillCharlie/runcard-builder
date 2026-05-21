@@ -1041,7 +1041,9 @@
         const card = state.cards.find((c) => c.id === pendingRecipeCardId);
         if (card) {
           const [sheetId, groupId, groupName] = id.split("::");
-          linkedEtchRecipes(card).push({ sheetId, id: groupId, name: groupName });
+          const recipes = linkedEtchRecipes(card);
+          const alreadyAdded = recipes.some((r) => r.sheetId === sheetId && r.id === groupId && r.name === groupName);
+          if (!alreadyAdded) recipes.push({ sheetId, id: groupId, name: groupName });
           keepAdding = true;
           saveState();
           renderCards();
@@ -1053,7 +1055,7 @@
           const card = state.cards.find((c) => c.id === pendingRecipeCardId);
           if (card) {
             if (!card.linkedReworks) card.linkedReworks = [];
-            card.linkedReworks.push(id);
+            if (!card.linkedReworks.includes(id)) card.linkedReworks.push(id);
             keepAdding = true;
             saveState();
             renderCards();
@@ -1068,7 +1070,7 @@
         const card = state.cards.find((c) => c.id === pendingRecipeCardId);
         if (card) {
           if (!card.linkedCleans) card.linkedCleans = [];
-          card.linkedCleans.push(id);
+          if (!card.linkedCleans.includes(id)) card.linkedCleans.push(id);
           keepAdding = true;
           saveState();
           renderCards();
@@ -1163,6 +1165,8 @@
       }
       cotDevBtn.addEventListener("click", openCotDevPicker);
 
+      renderLinkedRecipeBadges(node.querySelector(".linked-recipe-badges"), card);
+
       node.querySelector(".add-etch-to-step").addEventListener("click", () => {
         pendingRecipeCardId = card.id;
         setActiveRecipeTab("e17-etch");
@@ -1225,6 +1229,76 @@
     }
   }
 
+  function removeLinkedEtchRecipe(card, idx) {
+    linkedEtchRecipes(card).splice(idx, 1);
+    saveState();
+    renderCards();
+  }
+
+  function renderLinkedRecipeBadges(container, card) {
+    container.innerHTML = "";
+    const etchRecipes = linkedEtchRecipes(card);
+    const cleanRecipes = (card.linkedCleans || [])
+      .map((id, rawIndex) => ({ recipe: cleanById(id), rawIndex }))
+      .filter((item) => item.recipe);
+    const reworkRecipes = (card.linkedReworks || [])
+      .map((id, rawIndex) => ({ recipe: reworkById(id), rawIndex }))
+      .filter((item) => item.recipe);
+    const hasAny = etchRecipes.length || cleanRecipes.length || reworkRecipes.length;
+    container.classList.toggle("hidden", !hasAny);
+    if (!hasAny) return;
+
+    const makeGroup = (type, label, items, getText, onRemove) => {
+      if (!items.length) return;
+      const row = document.createElement("div");
+      row.className = `linked-recipe-badge-row ${type}`;
+      const labelEl = document.createElement("span");
+      labelEl.className = "recipe-badge-label";
+      setText(labelEl, label);
+      row.appendChild(labelEl);
+      items.forEach((item, idx) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `linked-recipe-chip ${type}`;
+        chip.title = "Click to remove";
+        setText(chip, `${getText(item)}  ×`);
+        chip.addEventListener("click", () => onRemove(idx));
+        row.appendChild(chip);
+      });
+      container.appendChild(row);
+    };
+
+    makeGroup(
+      "etch",
+      "Etch",
+      etchRecipes,
+      (recipe) => `${recipe.id} — ${recipe.name}`,
+      (idx) => removeLinkedEtchRecipe(card, idx)
+    );
+    makeGroup(
+      "clean",
+      "Clean",
+      cleanRecipes,
+      (item) => item.recipe.name,
+      (idx) => {
+        card.linkedCleans.splice(cleanRecipes[idx].rawIndex, 1);
+        saveState();
+        renderCards();
+      }
+    );
+    makeGroup(
+      "rework",
+      "Rework",
+      reworkRecipes,
+      (item) => item.recipe.name || item.recipe.title,
+      (idx) => {
+        card.linkedReworks.splice(reworkRecipes[idx].rawIndex, 1);
+        saveState();
+        renderCards();
+      }
+    );
+  }
+
   function renderLinkedRecipes(container, card) {
     container.innerHTML = "";
 
@@ -1244,7 +1318,7 @@
       rmBtn.type = "button";
       rmBtn.className = "small-button danger-text";
       setText(rmBtn, "× Remove");
-      rmBtn.addEventListener("click", () => { linkedEtchRecipes(card).splice(idx, 1); saveState(); renderCards(); });
+      rmBtn.addEventListener("click", () => removeLinkedEtchRecipe(card, idx));
       hdr.append(lbl, rmBtn);
       section.appendChild(hdr);
 
