@@ -517,7 +517,7 @@
       sourceSheet: section.sourceSheet || "",
       sourceRow: section.sourceRow || "",
       selectedRecipeId: "",
-      linkedEtchRecipe: null,
+      linkedEtchRecipes: [],
       linkedCleans: [],
       steps: section.steps.map((step) => normalizeStep(step, "row"))
     };
@@ -573,6 +573,14 @@
 
   function visibleStepParams(step) {
     return hasRecipeRecord(step) ? "" : (step.params || "");
+  }
+
+  function linkedEtchRecipes(card) {
+    const recipes = Array.isArray(card.linkedEtchRecipes) ? card.linkedEtchRecipes : [];
+    if (card.linkedEtchRecipe) recipes.push(card.linkedEtchRecipe);
+    card.linkedEtchRecipes = recipes;
+    card.linkedEtchRecipe = null;
+    return recipes;
   }
 
   function cleanRecipeShortLabel(recipe) {
@@ -646,6 +654,9 @@
     card.sourceSheet = restored.sourceSheet;
     card.sourceRow = restored.sourceRow;
     card.selectedRecipeId = restored.selectedRecipeId;
+    card.linkedEtchRecipes = restored.linkedEtchRecipes;
+    card.linkedEtchRecipe = null;
+    card.linkedCleans = restored.linkedCleans;
     card.steps = restored.steps;
   }
 
@@ -858,7 +869,7 @@
     const applyBtn = document.createElement("button");
     applyBtn.type = "button";
     applyBtn.className = "small-button recipe-apply-btn";
-    setText(applyBtn, pendingRecipeCardId ? "Apply ↵" : "Apply to Step");
+    setText(applyBtn, pendingRecipeCardId ? "Add ↵" : "Add to Step");
     applyBtn.addEventListener("click", () => applyRecipeFromBrowser("etch", `${sheetId}::${group.id}::${group.name}`));
     footer.appendChild(applyBtn);
 
@@ -980,6 +991,7 @@
   }
 
   function applyRecipeFromBrowser(type, id) {
+    let keepAdding = false;
     if (type === "photo") {
       if (pendingRecipeCardId) {
         const card = state.cards.find((c) => c.id === pendingRecipeCardId);
@@ -990,7 +1002,8 @@
         const card = state.cards.find((c) => c.id === pendingRecipeCardId);
         if (card) {
           const [sheetId, groupId, groupName] = id.split("::");
-          card.linkedEtchRecipe = { sheetId, id: groupId, name: groupName };
+          linkedEtchRecipes(card).push({ sheetId, id: groupId, name: groupName });
+          keepAdding = true;
           saveState();
           renderCards();
         }
@@ -1000,13 +1013,14 @@
         const card = state.cards.find((c) => c.id === pendingRecipeCardId);
         if (card) {
           if (!card.linkedCleans) card.linkedCleans = [];
-          if (!card.linkedCleans.includes(id)) card.linkedCleans.push(id);
+          card.linkedCleans.push(id);
+          keepAdding = true;
           saveState();
           renderCards();
         }
       }
     }
-    pendingRecipeCardId = null;
+    if (!keepAdding) pendingRecipeCardId = null;
     renderPendingBanner();
     renderRecipeBrowserCards();
   }
@@ -1140,8 +1154,8 @@
   function renderLinkedRecipes(container, card) {
     container.innerHTML = "";
 
-    if (card.linkedEtchRecipe) {
-      const { sheetId, id: groupId, name: groupName } = card.linkedEtchRecipe;
+    linkedEtchRecipes(card).forEach((etchRecipe, idx) => {
+      const { sheetId, id: groupId, name: groupName } = etchRecipe;
       const fullId = sheetId === "e17-etch" ? "e17-etch-metal-receipe" : "e16-etch-receipe";
       const groups = parseEtchSheet(fullId);
       const group = groups.find((g) => g.id === groupId && g.name === groupName) || groups.find((g) => g.id === groupId);
@@ -1156,7 +1170,7 @@
       rmBtn.type = "button";
       rmBtn.className = "small-button danger-text";
       setText(rmBtn, "× Remove");
-      rmBtn.addEventListener("click", () => { card.linkedEtchRecipe = null; saveState(); renderCards(); });
+      rmBtn.addEventListener("click", () => { linkedEtchRecipes(card).splice(idx, 1); saveState(); renderCards(); });
       hdr.append(lbl, rmBtn);
       section.appendChild(hdr);
 
@@ -1191,7 +1205,7 @@
         section.appendChild(tbl);
       }
       container.appendChild(section);
-    }
+    });
 
     (card.linkedCleans || []).forEach((cleanId, idx) => {
       const clean = cleanById(cleanId);
@@ -1367,11 +1381,11 @@
       ["Owner", state.meta.owner || ""],
       ["Generated", now.toLocaleString()],
       [],
-      ["Step", "Title", "COT-DEV Recipe", "Etch Recipe", "Clean Recipes"]
+      ["Step", "Title", "COT-DEV Recipe", "Etch Recipes", "Clean Recipes"]
     ];
     state.cards.forEach((card, idx) => {
       const recipe = card.selectedRecipeId ? recipeById(card.selectedRecipeId) : null;
-      const etchLabel = card.linkedEtchRecipe ? `${card.linkedEtchRecipe.id} – ${card.linkedEtchRecipe.name}` : "";
+      const etchLabel = linkedEtchRecipes(card).map((etch) => `${etch.id} – ${etch.name}`).join(", ");
       const cleanLabel = (card.linkedCleans || []).map((id) => cleanById(id)?.name || id).join(", ");
       coverRows.push([idx + 1, card.title, recipe ? cleanRecipeShortLabel(recipe) : "—", etchLabel, cleanLabel]);
     });
@@ -1394,8 +1408,8 @@
         rows.push([`${cardIndex + 1}.${subIndex}`, step.name || "", step.recipe || "", visibleStepParams(step), step.machine || "", step.condition || "", step.note || ""]);
       });
 
-      if (card.linkedEtchRecipe) {
-        const { sheetId, id: gId, name: gName } = card.linkedEtchRecipe;
+      linkedEtchRecipes(card).forEach((etchRecipe) => {
+        const { sheetId, id: gId, name: gName } = etchRecipe;
         const fullId = sheetId === "e17-etch" ? "e17-etch-metal-receipe" : "e16-etch-receipe";
         const groups = parseEtchSheet(fullId);
         const group = groups.find((g) => g.id === gId && g.name === gName) || groups.find((g) => g.id === gId);
@@ -1406,7 +1420,7 @@
           rows.push(["Parameter", ...Array.from({ length: maxS }, (_, i) => `Step ${i + 1}`)]);
           group.params.forEach((p) => rows.push([p.name, ...p.steps]));
         }
-      }
+      });
 
       (card.linkedCleans || []).forEach((cleanId) => {
         const clean = cleanById(cleanId);
