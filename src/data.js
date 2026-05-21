@@ -738,7 +738,7 @@ window.RUN_CARD_DATA = {
           "sourceRow": 69,
           "no": "8",
           "name": "O2 Plasma",
-          "recipe": "#601",
+          "recipe": "#13",
           "params": "",
           "machine": "E08",
           "condition": "",
