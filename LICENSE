@@ -1,0 +1,278 @@
+Copyright (c) 2024-2026 Ping yu-Chen, Taiwan (chenbill718@gmail.com)
+All Rights Reserved.
+
+────────────────────────────────────────────────────────────────────────────────
+                 RUNCARD-BUILDER SOURCE AVAILABLE LICENSE v1.0
+────────────────────────────────────────────────────────────────────────────────
+
+This software, "Runcard-Builder," including all source code, runcard templates,
+semiconductor process flows, recipe data, data structures, UI architecture,
+workflow logic, export logic, documentation, and associated materials
+(collectively, the "Software"), is the exclusive intellectual property of the
+Copyright Holder, except for third-party components that are distributed under
+their own separate licenses.
+
+This License is intended to allow limited viewing, study, and non-commercial
+use while protecting the core Runcard platform content, workflow architecture,
+and process/recipe knowledge embedded in this repository.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 1 — GRANT OF NON-COMMERCIAL LICENSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Subject to the terms of this License, the Copyright Holder grants you a
+limited, non-exclusive, non-transferable, royalty-free license to:
+
+  (a) View and study the source code for personal, educational, or academic
+      research purposes;
+
+  (b) Run the Software locally for personal, non-commercial use;
+
+  (c) Fork the repository and make modifications solely for personal,
+      non-commercial use, provided all conditions in Section 2 are met;
+
+  (d) Share or publish non-commercial derivative works (e.g., student projects
+      or academic demonstrations) provided this License is included in full and
+      the protected Runcard/process/architecture elements in Section 4 are not
+      reproduced, extracted, or used as the basis of another platform without
+      written permission.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 2 — MANDATORY CONDITIONS (ALL USE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Any permitted use of the Software, in whole or in part, including derivative
+works, integrations, academic publications, or demonstrations, MUST:
+
+  1. ATTRIBUTION — Prominently display the following notice in any work that
+     incorporates or is derived from this Software:
+
+       "Based on Runcard-Builder by Ping yu-Chen, Taiwan
+        (https://github.com/BillCharlie/runcard-builder)"
+
+     This attribution must appear in: (i) any user-facing interface, README,
+     or documentation; (ii) any academic paper, thesis, report, or presentation
+     that uses or references this Software or its design; (iii) any derived
+     software's license, credits, or about page.
+
+  2. AUTHOR CREDIT — Whenever this Software is downloaded, deployed, or
+     referenced, the following credit MUST be clearly stated:
+
+       Author: Ping yu-Chen, Taiwan
+
+  3. LICENSE PRESERVATION — This LICENSE file must be retained in full and
+     without modification in any copy or substantial portion of the Software.
+
+  4. NO MISREPRESENTATION — You may not represent this Software or any
+     derivative as your own original work, claim authorship of the core
+     runcard content, recipe system, workflow architecture, data schema, or
+     platform design, or remove, alter, or obscure any copyright, trademark,
+     or attribution notices.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 3 — COMMERCIAL USE RESTRICTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMMERCIAL USE IS STRICTLY PROHIBITED WITHOUT PRIOR WRITTEN PERMISSION.
+
+"Commercial Use" includes, but is not limited to:
+
+  • Deploying or operating this Software (or a derivative) as part of a paid
+    product, SaaS platform, API service, or subscription offering;
+  • Incorporating this Software into any product, internal production system,
+    laboratory operations platform, manufacturing execution system, runcard
+    management tool, recipe management tool, or service that generates revenue,
+    directly or indirectly;
+  • Licensing, sublicensing, selling, or otherwise transferring this Software
+    or derivative works to third parties for commercial purposes;
+  • Using this Software to provide consulting, contract work, wafer process
+    planning, semiconductor fabrication planning, or professional services to
+    external clients;
+  • Using this Software, its runcard templates, recipe data, or architecture in
+    a commercial research collaboration, funded project, technology transfer,
+    or industrial deployment without explicit written consent.
+
+To request a commercial license, contact: chenbill718@gmail.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 4 — PROTECTED INTELLECTUAL PROPERTY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The following elements of the Software are explicitly protected and may NOT
+be reproduced, adapted, extracted, repackaged, used to train or benchmark a
+competing system, or used as the basis for any other work without written
+permission, even for non-commercial purposes:
+
+  4.1 RUNCARD PROCESS CONTENT AND TEMPLATE LIBRARY
+      • The Runcard process flow content, including PGaN-EVG step templates,
+        alignment key etch, p-GaN etch, deep mesa etch, active region implant,
+        ohmic metal, insulator oxide, gate metal, passivation etch, pad metal,
+        and related semiconductor process modules;
+      • The selected step names, sequencing, grouping, source rows, notes,
+        machine assignments, condition text, inspection points, and retained
+        parameter values that encode process know-how;
+      • The curated COT-DEV, Etch, Clean, and Rework recipe relationships and
+        how they attach to runcard steps;
+      • The domain-specific runcard cleanup rules, including hiding parameters
+        when a recipe is already recorded, selectively retaining protected
+        parameter entries, and structuring inspection/measurement rows.
+
+  4.2 PLATFORM DATA MODEL AND SCHEMA
+      • The window.RUN_CARD_DATA schema and its organization into sections,
+        steps, photoRecipes, cleanRecipes, referenceSheets, rework flows,
+        recipe aliases, and conflict notes;
+      • The normalized step schema {id, sourceRow, no, name, recipe, params,
+        machine, condition, note, type, enabled} and the card schema containing
+        selectedRecipeId, linkedEtchRecipes, linkedCleans, linkedReworks, and
+        user-customizable steps;
+      • The recipe linkage model that allows COT-DEV selection, multiple Etch
+        recipes, multiple Clean recipes, and multiple Rework recipes to be
+        attached to a runcard card without destroying the base template;
+      • The mapping between original spreadsheet/reference sheet content and
+        interactive builder data structures.
+
+  4.3 THREE-PANEL RUNCARD BUILDER ARCHITECTURE
+      • The three-column application architecture consisting of Step Library,
+        central Runcard Builder, and Recipe Browser panels;
+      • The independent scroll-region layout for left, center, and right panels
+        while preserving a fixed topbar and active-card workflow;
+      • The active-card pager model for editing one runcard card at a time,
+        including drag/copy/delete/restore row management and linked recipe
+        presentation below the editable step table;
+      • The UI/UX logic separating COT-DEV selection, Etch recipes, Clean
+        recipes, and Rework recipes into distinct browser tabs and card-level
+        action buttons.
+
+  4.4 COT-DEV / ETCH / CLEAN / REWORK RECIPE SYSTEM
+      • The COT-DEV recipe application pipeline that replaces photo process
+        blocks while preserving exposure steps and selected recipe state;
+      • The Track vs Manual COT-DEV mode system, including UI color-coding,
+        selected recipe display, and Change workflow;
+      • The Etch recipe parser and browser model that reads tabular reference
+        sheet entries into grouped recipe parameter tables;
+      • The Clean and Rework recipe systems, including their card browser
+        display, continuous multi-add behavior, linked recipe rendering, and
+        per-card removal controls;
+      • The Rework flow library, including PFI38/PFI89 and LOR + PFI38
+        variants for No Metal / No Oxide, Metal / No Oxide, Oxide / No Metal,
+        and Metal + Oxide process conditions.
+
+  4.5 EXPORT AND REPORTING WORKFLOW
+      • The Excel export workflow that generates an index sheet and one sheet
+        per runcard card, including selected COT-DEV, Etch, Clean, and Rework
+        recipe summaries;
+      • The transformation logic from interactive card state to export rows,
+        including hidden-parameter handling and linked recipe expansion;
+      • The worksheet naming, column sizing, section ordering, and reporting
+        structure used to preserve runcard readability.
+
+  4.6 FRONTEND IMPLEMENTATION AND INTERACTION LOGIC
+      • The local, single-page runcard authoring interface implemented through
+        index.html, src/app.js, and src/styles.css;
+      • The state persistence model using browser localStorage and the
+        runcard-builder storage namespace;
+      • The drag-and-drop template workflow, linked recipe workflow, active
+        recipe pending banner, and recipe browser tab system;
+      • The specific UX decisions, labels, grouping, and controls that make
+        the platform function as a semiconductor runcard builder rather than
+        a generic spreadsheet or form editor.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 5 — PROHIBITED ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You may NOT:
+
+  (a) Sublicense, sell, rent, lease, or otherwise transfer rights to the
+      Software or any portion thereof;
+  (b) Use the Software, its runcard content, recipe system, data schema, or
+      design concepts to create a competing product, service, laboratory
+      workflow platform, runcard builder, recipe builder, or manufacturing
+      workflow tool without prior written consent;
+  (c) Extract, copy, scrape, export, or reconstruct the runcard templates,
+      process flows, recipes, or reference sheet data for use in another
+      system, dataset, product, or internal tool;
+  (d) Reverse-engineer any compiled, minified, obfuscated, or generated
+      components for commercial exploitation;
+  (e) Remove or alter any copyright notices, this LICENSE, or attribution
+      statements from any file in this repository;
+  (f) Use the Software in any manner that violates applicable laws or
+      regulations, including export control laws.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 6 — ACADEMIC & RESEARCH USE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Academic and non-commercial research use is permitted provided that:
+
+  (a) Any publication, thesis, report, or presentation referencing this
+      Software includes the following citation or equivalent:
+
+        Ping yu-Chen. Runcard-Builder [Software]. Taiwan. Available at:
+        https://github.com/BillCharlie/runcard-builder
+
+  (b) The use does not involve commercial funding, fab operations deployment,
+      production wafer process planning, or commercialization of results
+      derived directly from this Software without prior written consent.
+
+  (c) The author is notified of publications that significantly rely on this
+      Software, as a courtesy: chenbill718@gmail.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 7 — THIRD-PARTY COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This repository may include third-party libraries, minified vendor files, or
+assets, including but not limited to spreadsheet parsing/export libraries.
+Such third-party components remain subject to their own licenses and are not
+relicensed under this License.
+
+This License applies to the Copyright Holder's original Software, including
+the Runcard-Builder application code, workflow design, runcard content, recipe
+data, architecture, documentation, and original materials in this repository.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 8 — DISTRIBUTION OF VERBATIM COPIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You may reproduce and distribute verbatim copies of this License document,
+but changing it is not permitted. If you distribute the Software, you must
+include this License in its entirety and ensure recipients are aware of its
+terms before use.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 9 — NO WARRANTY / LIMITATION OF LIABILITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 10 — TERMINATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your rights under this License terminate automatically and immediately upon
+any breach of its terms. Upon termination, you must cease all use of the
+Software and destroy all copies in your possession.
+
+The Copyright Holder reserves the right to enforce this License and pursue
+all available legal remedies for violations, including injunctive relief and
+monetary damages.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 11 — GOVERNING LAW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This License shall be governed by and construed in accordance with the laws
+of Taiwan (Republic of China). Any disputes arising under this License shall
+be subject to the exclusive jurisdiction of the courts of Taiwan.
+
+────────────────────────────────────────────────────────────────────────────────
+For permissions beyond the scope of this license, contact:
+  Ping yu-Chen, Taiwan — chenbill718@gmail.com
+  GitHub: https://github.com/BillCharlie
+────────────────────────────────────────────────────────────────────────────────
