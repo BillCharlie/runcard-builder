@@ -537,6 +537,16 @@ input:focus, select:focus, textarea:focus {
   font-weight: 700;
 }
 
+.recipe-badge-value.track {
+  background: var(--green-soft);
+  color: var(--teal-dark);
+}
+
+.recipe-badge-value.manual {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
 .recipe-badge-value.no-recipe {
   background: var(--amber-soft);
   color: var(--amber);

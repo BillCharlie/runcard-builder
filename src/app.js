@@ -1150,8 +1150,11 @@
       if (hasPhotoSteps(card)) {
         if (card.selectedRecipeId) {
           const recipe = recipeById(card.selectedRecipeId);
+          const badgeEl = node.querySelector(".recipe-badge-value");
           recipeRow.classList.remove("hidden");
-          setText(node.querySelector(".recipe-badge-value"), recipe ? cleanRecipeShortLabel(recipe) : "—");
+          badgeEl.classList.toggle("track", recipe?.mode === "track");
+          badgeEl.classList.toggle("manual", recipe?.mode === "manual");
+          setText(badgeEl, recipe ? cleanRecipeShortLabel(recipe) : "—");
           node.querySelector(".change-recipe").addEventListener("click", openCotDevPicker);
         } else {
           cotDevBtn.classList.remove("hidden");
