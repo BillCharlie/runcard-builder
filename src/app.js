@@ -1139,17 +1139,26 @@
           .filter(Boolean).join(" · ")
       );
 
+      const recipeRow = node.querySelector(".card-recipe-row");
       const cotDevBtn = node.querySelector(".add-cot-dev-to-step");
-      if (hasPhotoSteps(card)) {
-        cotDevBtn.classList.remove("hidden");
-        setText(cotDevBtn, "+ COT-DEV Receipe(務必添加)");
-      }
-      cotDevBtn.addEventListener("click", () => {
+      const openCotDevPicker = () => {
         pendingRecipeCardId = card.id;
         setActiveRecipeTab("cot-dev");
         renderPendingBanner();
         els.recipeBrowserCards.closest(".panel-section").scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      };
+      if (hasPhotoSteps(card)) {
+        if (card.selectedRecipeId) {
+          const recipe = recipeById(card.selectedRecipeId);
+          recipeRow.classList.remove("hidden");
+          setText(node.querySelector(".recipe-badge-value"), recipe ? cleanRecipeShortLabel(recipe) : "—");
+          node.querySelector(".change-recipe").addEventListener("click", openCotDevPicker);
+        } else {
+          cotDevBtn.classList.remove("hidden");
+          setText(cotDevBtn, "+ COT-DEV Receipe(務必添加)");
+        }
+      }
+      cotDevBtn.addEventListener("click", openCotDevPicker);
 
       node.querySelector(".add-etch-to-step").addEventListener("click", () => {
         pendingRecipeCardId = card.id;
