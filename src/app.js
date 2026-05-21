@@ -1070,29 +1070,17 @@
           .filter(Boolean).join(" · ")
       );
 
-      // Photo recipe row
-      const recipeRow = node.querySelector(".card-recipe-row");
+      const cotDevBtn = node.querySelector(".add-cot-dev-to-step");
       if (hasPhotoSteps(card)) {
-        recipeRow.classList.remove("hidden");
-        const badgeEl = node.querySelector(".recipe-badge-value");
-        const changeBtn = node.querySelector(".change-recipe");
-        if (card.selectedRecipeId) {
-          const recipe = recipeById(card.selectedRecipeId);
-          setText(badgeEl, recipe ? cleanRecipeShortLabel(recipe) : "—");
-          badgeEl.classList.remove("no-recipe");
-          setText(changeBtn, "Change →");
-        } else {
-          setText(badgeEl, "务必添加 COT-DEV Recipe");
-          badgeEl.classList.add("no-recipe");
-          setText(changeBtn, "Select →");
-        }
-        changeBtn.addEventListener("click", () => {
-          pendingRecipeCardId = card.id;
-          setActiveRecipeTab("cot-dev");
-          renderPendingBanner();
-          els.recipeBrowserCards.closest(".panel-section").scrollIntoView({ behavior: "smooth", block: "start" });
-        });
+        cotDevBtn.classList.remove("hidden");
+        setText(cotDevBtn, "+ COT-DEV Receipe(務必添加)");
       }
+      cotDevBtn.addEventListener("click", () => {
+        pendingRecipeCardId = card.id;
+        setActiveRecipeTab("cot-dev");
+        renderPendingBanner();
+        els.recipeBrowserCards.closest(".panel-section").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
 
       node.querySelector(".add-etch-to-step").addEventListener("click", () => {
         pendingRecipeCardId = card.id;
