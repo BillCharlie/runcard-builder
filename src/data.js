@@ -2306,13 +2306,13 @@ window.RUN_CARD_DATA = {
       "mix": "\uff08\u8a2d\u7e3d\u723280%\uff0910% : 70%",
       "temperature": "\u5ba4\u6eab",
       "time": "\u4f9dOxide\u539a\u5ea6(100nm/1min)",
-      "usage": "SiO2\u8755\u523b",
+      "usage": "\u53bb\u9664native Oxide",
       "step": {
         "name": "BOE clean",
         "recipe": "",
         "params": "HF : NH4F; 1 : 7; \uff08\u8a2d\u7e3d\u723280%\uff0910% : 70%; \u5ba4\u6eab; \u4f9dOxide\u539a\u5ea6(100nm/1min)",
         "machine": "C06-03",
-        "condition": "SiO2\u8755\u523b",
+        "condition": "\u53bb\u9664native Oxide",
         "note": "Clean Receipe"
       }
     },
@@ -5470,7 +5470,7 @@ window.RUN_CARD_DATA = {
             "\uff08\u8a2d\u7e3d\u723280%\uff0910% : 70%",
             "\u5ba4\u6eab",
             "\u4f9dOxide\u539a\u5ea6(100nm/1min)",
-            "SiO2\u8755\u523b"
+            "\u53bb\u9664native Oxide"
           ]
         },
         {
