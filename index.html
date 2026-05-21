@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Runcard Builder</title>
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <h1>Runcard Builder</h1>
+          <span id="sourceLabel"></span>
+        </div>
+        <div class="top-actions">
+          <label class="field compact-field">
+            <span>Runcard</span>
+            <input id="runcardTitle" type="text" autocomplete="off" />
+          </label>
+          <label class="field compact-field">
+            <span>Owner</span>
+            <input id="ownerInput" type="text" autocomplete="off" />
+          </label>
+          <button id="resetBtn" class="ghost-button" type="button">Reset</button>
+          <button id="exportBtn" class="primary-button" type="button">Export Excel</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+
+        <!-- ── Left: Step Library ── -->
+        <aside class="library-panel" aria-label="Step library">
+          <section class="panel-section">
+            <div class="section-heading">
+              <h2>Step Library</h2>
+              <span id="templateCount"></span>
+            </div>
+            <input id="templateSearch" class="search-input" type="search" placeholder="Search step" />
+            <div id="templateList" class="template-list"></div>
+          </section>
+        </aside>
+
+        <!-- ── Center: Builder ── -->
+        <section class="builder-panel">
+          <div class="builder-toolbar">
+            <div class="toolbar-group status-group">
+              <span id="selectedSummary">0 steps</span>
+              <button id="clearBtn" class="danger-button" type="button">Clear</button>
+            </div>
+          </div>
+
+          <div id="cardPager" class="card-pager">
+            <button id="prevCardBtn" class="pager-nav-btn" type="button" title="Previous step (←)">&#8592;</button>
+            <span id="cardPagerLabel"></span>
+            <button id="nextCardBtn" class="pager-nav-btn" type="button" title="Next step (→)">&#8594;</button>
+          </div>
+
+          <div id="dropZone" class="drop-zone">
+            <div id="cardBoard" class="card-board"></div>
+            <div id="emptyState" class="empty-state">
+              <strong>No steps yet</strong>
+              <span>Drag a step from the Step Library, or click <kbd>+</kbd> to add.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Right: Recipe Browser ── -->
+        <aside class="inspector-panel" aria-label="Recipe browser">
+          <section class="panel-section recipe-browser-panel">
+            <div class="section-heading recipe-browser-heading">
+              <h2>Recipes</h2>
+              <div class="recipe-tabs">
+                <button class="recipe-tab-btn active" data-tab="cot-dev" type="button">COT-DEV</button>
+                <button class="recipe-tab-btn" data-tab="e17-etch" type="button">E17-Etch Metal</button>
+                <button class="recipe-tab-btn" data-tab="e16-etch" type="button">E16-Etch</button>
+                <button class="recipe-tab-btn" data-tab="clean" type="button">Clean</button>
+              </div>
+            </div>
+            <div id="recipePendingBanner" class="recipe-pending-banner hidden">
+              <span>Applying to:</span>
+              <strong id="recipePendingName">–</strong>
+              <button id="recipeCancelBtn" class="small-button" type="button">Cancel</button>
+            </div>
+            <div id="recipeBrowserCards" class="recipe-browser-cards"></div>
+          </section>
+        </aside>
+
+      </main>
+    </div>
+
+    <!-- Card template -->
+    <template id="cardTemplate">
+      <article class="runcard-card" draggable="true">
+        <div class="card-head">
+          <button class="handle-button" type="button" title="Drag">↕</button>
+          <div class="order-badge"></div>
+          <div class="card-title-group">
+            <input class="card-title-input" type="text" />
+            <div class="card-meta"></div>
+          </div>
+          <div class="card-actions">
+            <button class="small-button move-up" type="button" title="Move up">↑</button>
+            <button class="small-button move-down" type="button" title="Move down">↓</button>
+            <button class="small-button duplicate-card" type="button">Copy</button>
+            <button class="small-button delete-card danger-text" type="button">Delete</button>
+          </div>
+        </div>
+        <div class="card-controls">
+          <div class="card-recipe-row hidden">
+            <span class="recipe-badge-label">Recipe</span>
+            <span class="recipe-badge-value"></span>
+            <button class="small-button change-recipe" type="button">Change →</button>
+          </div>
+          <button class="small-button add-etch-to-step" type="button">+ Etch Recipe</button>
+          <button class="small-button add-clean-to-step" type="button">+ Clean Recipe</button>
+          <button class="small-button add-row" type="button">+ Row</button>
+          <button class="small-button restore-card" type="button">Restore</button>
+        </div>
+        <div class="substep-table"></div>
+        <div class="linked-recipes"></div>
+      </article>
+    </template>
+
+    <script src="vendor/xlsx.full.min.js" charset="utf-8"></script>
+    <script src="src/data.js" charset="utf-8"></script>
+    <script src="src/app.js" charset="utf-8"></script>
+  </body>
+</html>
