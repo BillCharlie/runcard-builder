@@ -901,19 +901,6 @@ window.RUN_CARD_DATA = {
           "enabled": true
         },
         {
-          "id": "step-5-r85",
-          "sourceRow": 85,
-          "no": "6",
-          "name": "Remove residue PR(ACE)",
-          "recipe": "",
-          "params": "",
-          "machine": "UV-Ozone",
-          "condition": "",
-          "note": "NCU \u5fae\u5149\u96fb",
-          "type": "process",
-          "enabled": true
-        },
-        {
           "id": "step-5-r86",
           "sourceRow": 86,
           "no": "7",
@@ -1258,19 +1245,6 @@ window.RUN_CARD_DATA = {
           "condition": "",
           "note": "",
           "type": "inspection",
-          "enabled": true
-        },
-        {
-          "id": "step-6-r114",
-          "sourceRow": 114,
-          "no": "9",
-          "name": "Remove residue PR(ACE)",
-          "recipe": "",
-          "params": "",
-          "machine": "UV-Ozone",
-          "condition": "",
-          "note": "NCU \u5fae\u5149\u96fb",
-          "type": "process",
           "enabled": true
         },
         {
@@ -3428,18 +3402,6 @@ window.RUN_CARD_DATA = {
           ]
         },
         {
-          "rowNumber": 85,
-          "cells": [
-            "6",
-            "Remove residue PR(ACE)",
-            "",
-            "",
-            "UV-Ozone",
-            "",
-            "NCU \u5fae\u5149\u96fb"
-          ]
-        },
-        {
           "rowNumber": 86,
           "cells": [
             "7",
@@ -3761,18 +3723,6 @@ window.RUN_CARD_DATA = {
             "OM",
             "",
             ""
-          ]
-        },
-        {
-          "rowNumber": 114,
-          "cells": [
-            "9",
-            "Remove residue PR(ACE)",
-            "",
-            "",
-            "UV-Ozone",
-            "",
-            "NCU \u5fae\u5149\u96fb"
           ]
         },
         {
