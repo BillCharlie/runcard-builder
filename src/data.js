@@ -1357,8 +1357,8 @@ window.RUN_CARD_DATA = {
       "id": "step-7",
       "sourceSheet": "PGaN-EVG",
       "sourceRow": 124,
-      "title": "Step7. Passivation Etch (clear)",
-      "name": "Passivation Etch (clear)",
+      "title": "Step7. Passivation thin-Film&Etch (clear)",
+      "name": "Passivation thin-Film&Etch (clear)",
       "tone": "clear",
       "defaultRecipeId": "track-lor-pfi38",
       "steps": [
