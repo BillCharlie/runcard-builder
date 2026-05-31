@@ -7,13 +7,45 @@
     <link rel="stylesheet" href="src/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <section id="projectManager" class="project-manager-view" aria-label="Project manager">
+      <header class="manager-topbar">
+        <div>
+          <h1>Process Runcard-Builder</h1>
+          <p>Project Sessions / Runcards / Version History</p>
+        </div>
+        <button id="newSessionBtn" class="primary-button" type="button">+ New Session</button>
+      </header>
+      <main class="manager-layout">
+        <section class="manager-column">
+          <div class="manager-section-heading">
+            <h2>Sessions</h2>
+            <span id="managerSessionCount"></span>
+          </div>
+          <div id="managerSessionList" class="manager-list"></div>
+        </section>
+        <section class="manager-column manager-main-column">
+          <div class="manager-section-heading">
+            <div>
+              <h2 id="managerSessionTitle">Select a Session</h2>
+              <span id="managerSessionMeta"></span>
+            </div>
+            <button id="newRuncardBtn" class="primary-button" type="button">+ New Runcard</button>
+          </div>
+          <div id="managerRuncardList" class="manager-list"></div>
+        </section>
+      </main>
+    </section>
+
+    <div id="editorShell" class="app-shell hidden">
       <header class="topbar">
         <div class="brand-block">
           <h1>Process Runcard-Builder</h1>
           <span id="sourceLabel"></span>
         </div>
         <div class="top-actions">
+          <button id="managerHomeBtn" class="ghost-button" type="button">Projects</button>
+          <button id="commitBtn" class="primary-button" type="button">Commit</button>
+          <button id="historyBtn" class="ghost-button" type="button">History</button>
           <label class="field compact-field">
             <span>Runcard</span>
             <input id="runcardTitle" type="text" autocomplete="off" />
@@ -128,6 +160,19 @@
         <div class="linked-recipes"></div>
       </article>
     </template>
+
+    <div id="modalBackdrop" class="modal-backdrop hidden" role="presentation">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <h2 id="modalTitle"></h2>
+            <p id="modalSubtitle"></p>
+          </div>
+          <button id="modalCloseBtn" class="small-button" type="button">×</button>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+      </section>
+    </div>
 
     <script src="vendor/xlsx.full.min.js" charset="utf-8"></script>
     <script src="src/data.js" charset="utf-8"></script>

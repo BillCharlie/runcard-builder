@@ -3,6 +3,7 @@
 
   const data = window.RUN_CARD_DATA;
   const storageKey = "runcard-builder-v10";
+  const managerStorageKey = "runcard-builder-project-manager-v1";
 
  const REWORK_SECTIONS = [
   {
@@ -416,6 +417,23 @@
 ];
   const els = {
     sourceLabel: document.getElementById("sourceLabel"),
+    projectManager: document.getElementById("projectManager"),
+    editorShell: document.getElementById("editorShell"),
+    managerHomeBtn: document.getElementById("managerHomeBtn"),
+    commitBtn: document.getElementById("commitBtn"),
+    historyBtn: document.getElementById("historyBtn"),
+    newSessionBtn: document.getElementById("newSessionBtn"),
+    newRuncardBtn: document.getElementById("newRuncardBtn"),
+    managerSessionCount: document.getElementById("managerSessionCount"),
+    managerSessionList: document.getElementById("managerSessionList"),
+    managerSessionTitle: document.getElementById("managerSessionTitle"),
+    managerSessionMeta: document.getElementById("managerSessionMeta"),
+    managerRuncardList: document.getElementById("managerRuncardList"),
+    modalBackdrop: document.getElementById("modalBackdrop"),
+    modalTitle: document.getElementById("modalTitle"),
+    modalSubtitle: document.getElementById("modalSubtitle"),
+    modalBody: document.getElementById("modalBody"),
+    modalCloseBtn: document.getElementById("modalCloseBtn"),
     runcardTitle: document.getElementById("runcardTitle"),
     ownerInput: document.getElementById("ownerInput"),
     resetBtn: document.getElementById("resetBtn"),
@@ -441,6 +459,9 @@
 
   let uid = 0;
   let state = createDefaultState();
+  let manager = createDefaultManager();
+  let sessionPassHashes = {};
+  let draftSaveTimer = null;
   let pendingRecipeCardId = null;
   let activeRecipeTab = "cot-dev";
   let activeCardIndex = 0;
@@ -454,6 +475,17 @@
     };
   }
 
+  function createDefaultManager() {
+    return {
+      version: 1,
+      activeSessionId: null,
+      activeRuncardId: null,
+      selectedSessionId: null,
+      unlockedSessions: {},
+      sessions: []
+    };
+  }
+
   function nextId(prefix) {
     uid += 1;
     return `${prefix}-${Date.now().toString(36)}-${uid.toString(36)}`;
@@ -461,6 +493,55 @@
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
+  }
+
+  function nowIso() {
+    return new Date().toISOString();
+  }
+
+  function localHash(text) {
+    let h = 2166136261;
+    const value = String(text || "");
+    for (let i = 0; i < value.length; i += 1) {
+      h ^= value.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(16).padStart(8, "0");
+  }
+
+  async function sha256(text) {
+    const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function apiFetch(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || payload.detail || response.statusText);
+    return payload;
+  }
+
+  function sessionHeaders(sessionId) {
+    return sessionPassHashes[sessionId] ? { "X-Session-Hash": sessionPassHashes[sessionId] } : {};
+  }
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString();
+  }
+
+  function draftSummary(draft) {
+    const cards = Array.isArray(draft?.cards) ? draft.cards : [];
+    const rows = cards.reduce((sum, card) => sum + (Array.isArray(card.steps) ? card.steps.filter((s) => s.enabled !== false).length : 0), 0);
+    return `${cards.length} steps · ${rows} rows`;
   }
 
   function sourceBaseName(path) {
@@ -538,18 +619,807 @@
   }
 
   function saveState() {
+    syncCurrentRuncardDraft();
     try { localStorage.setItem(storageKey, JSON.stringify(state)); }
     catch (e) { console.warn("Unable to save state", e); }
   }
 
-  function loadState() {
+  function loadLegacyState() {
     try {
       const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
+      if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed || !Array.isArray(parsed.cards)) return;
-      state = parsed;
+      if (!parsed || !Array.isArray(parsed.cards)) return null;
+      return parsed;
     } catch (e) { console.warn("Unable to load state", e); }
+    return null;
+  }
+
+  function saveManager() {
+    const uiState = {
+      activeSessionId: manager.activeSessionId,
+      activeRuncardId: manager.activeRuncardId,
+      selectedSessionId: manager.selectedSessionId
+    };
+    try { localStorage.setItem(managerStorageKey, JSON.stringify(uiState)); }
+    catch (e) { console.warn("Unable to save project manager UI state", e); }
+  }
+
+  async function loadManager() {
+    const uiState = (() => {
+      try { return JSON.parse(localStorage.getItem(managerStorageKey) || "{}"); }
+      catch { return {}; }
+    })();
+    const sessions = await apiFetch("/api/projects");
+    manager = {
+      ...createDefaultManager(),
+      activeSessionId: uiState.activeSessionId || null,
+      activeRuncardId: uiState.activeRuncardId || null,
+      selectedSessionId: uiState.selectedSessionId || sessions[0]?.id || null,
+      sessions: sessions.map((session) => ({
+        id: session.id,
+        name: session.name,
+        requiresPassword: !!session.requires_password,
+        createdAt: session.created_at,
+        updatedAt: session.updated_at,
+        runcardCount: session.runcard_count || 0,
+        lastActivity: session.last_activity || null,
+        runcards: []
+      }))
+    };
+
+    if (manager.selectedSessionId && isSessionUnlocked(manager.selectedSessionId)) {
+      await loadRuncardsForSession(manager.selectedSessionId);
+    }
+
+    if (manager.activeSessionId && isSessionUnlocked(manager.activeSessionId)) {
+      await loadRuncardsForSession(manager.activeSessionId);
+      const active = currentRuncard();
+      if (active) state = clone(active.draft || createDefaultState());
+    }
+  }
+
+  async function bootstrapFromLegacyState() {
+    const legacy = loadLegacyState();
+    if (!legacy || manager.sessions.length) return;
+    const session = await apiFetch("/api/projects", {
+      method: "POST",
+      body: JSON.stringify({ name: "Local Session", password: "", password2: "" })
+    });
+    manager.sessions.unshift({
+      id: session.id,
+      name: session.name,
+      requiresPassword: false,
+      createdAt: session.created_at,
+      updatedAt: session.updated_at,
+      runcardCount: 0,
+      lastActivity: null,
+      runcards: []
+    });
+    manager.selectedSessionId = session.id;
+    manager.activeSessionId = session.id;
+    sessionPassHashes[session.id] = "";
+    const runcard = await createRuncard(session.id, legacy.meta?.title || "Custom Runcard", "Imported from the previous single-runcard workspace.", legacy.meta?.owner || "", legacy);
+    if (runcard) {
+      manager.activeRuncardId = runcard.id;
+      state = clone(runcard.draft || legacy);
+    }
+    saveManager();
+  }
+
+  async function loadRuncardsForSession(sessionId) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    if (!session || !isSessionUnlocked(sessionId)) return [];
+    const runcards = await apiFetch(`/api/projects/${sessionId}/runcards`, {
+      headers: sessionHeaders(sessionId)
+    });
+    session.runcards = runcards.map(normalizeRuncardFromApi);
+    session.runcardCount = session.runcards.length;
+    return session.runcards;
+  }
+
+  function normalizeRuncardFromApi(item) {
+    return {
+      id: item.id,
+      sessionId: item.session_id,
+      name: item.name,
+      description: item.description || "",
+      owner: item.owner || "",
+      draft: item.draft && Array.isArray(item.draft.cards) ? item.draft : createDefaultState(),
+      versions: (item.versions || []).map((version) => ({
+        id: version.id,
+        versionNumber: version.version_number,
+        label: version.label,
+        createdAt: version.created_at,
+        state: version.state,
+        summary: version.summary || ""
+      })),
+      currentVersionNumber: item.current_version_number || 0,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at
+    };
+  }
+
+  function loadManagerFromLocalFallback() {
+    try {
+      const raw = localStorage.getItem(managerStorageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.sessions)) {
+          manager = { ...createDefaultManager(), ...parsed };
+          manager.unlockedSessions = manager.unlockedSessions || {};
+          manager.sessions.forEach((session) => {
+            session.runcards = Array.isArray(session.runcards) ? session.runcards : [];
+            session.runcards.forEach((runcard) => {
+              runcard.versions = Array.isArray(runcard.versions) ? runcard.versions : [];
+              runcard.draft = runcard.draft && Array.isArray(runcard.draft.cards) ? runcard.draft : createDefaultState();
+            });
+          });
+          if (!manager.selectedSessionId && manager.sessions[0]) manager.selectedSessionId = manager.sessions[0].id;
+          return;
+        }
+      }
+    } catch (e) { console.warn("Unable to load project manager", e); }
+
+    const legacy = loadLegacyState();
+    const created = nowIso();
+    const sessionId = nextId("session");
+    const runcardId = nextId("runcard");
+    const draft = legacy || createDefaultState();
+    manager = {
+      ...createDefaultManager(),
+      activeSessionId: sessionId,
+      activeRuncardId: runcardId,
+      selectedSessionId: sessionId,
+      unlockedSessions: { [sessionId]: true },
+      sessions: [
+        {
+          id: sessionId,
+          name: "Local Session",
+          passHash: "",
+          createdAt: created,
+          updatedAt: created,
+          runcards: [
+            {
+              id: runcardId,
+              name: draft.meta?.title || "Custom Runcard",
+              description: "Imported from the previous single-runcard workspace.",
+              owner: draft.meta?.owner || "",
+              draft,
+              versions: [],
+              currentVersionNumber: 0,
+              createdAt: created,
+              updatedAt: created
+            }
+          ]
+        }
+      ]
+    };
+    state = clone(draft);
+    saveManager();
+  }
+
+  function selectedSession() {
+    return manager.sessions.find((session) => session.id === manager.selectedSessionId) || manager.sessions[0] || null;
+  }
+
+  function currentSession() {
+    return manager.sessions.find((session) => session.id === manager.activeSessionId) || null;
+  }
+
+  function currentRuncard() {
+    const session = currentSession();
+    if (!session) return null;
+    return session.runcards.find((runcard) => runcard.id === manager.activeRuncardId) || null;
+  }
+
+  function isSessionUnlocked(sessionId) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    return !!session && (!session.requiresPassword || manager.unlockedSessions[sessionId]);
+  }
+
+  function syncCurrentRuncardDraft() {
+    const runcard = currentRuncard();
+    const session = currentSession();
+    if (!runcard || !session) return;
+    const stamp = nowIso();
+    runcard.name = state.meta?.title || runcard.name || "Untitled Runcard";
+    runcard.owner = state.meta?.owner || "";
+    runcard.draft = clone(state);
+    runcard.updatedAt = stamp;
+    session.updatedAt = stamp;
+    saveManager();
+    if (draftSaveTimer) clearTimeout(draftSaveTimer);
+    draftSaveTimer = setTimeout(() => {
+      void persistCurrentDraft();
+    }, 450);
+  }
+
+  async function persistCurrentDraft() {
+    const runcard = currentRuncard();
+    const session = currentSession();
+    if (!runcard || !session || !isSessionUnlocked(session.id)) return;
+    try {
+      await apiFetch(`/api/projects/${session.id}/runcards/${runcard.id}/draft`, {
+        method: "PUT",
+        headers: sessionHeaders(session.id),
+        body: JSON.stringify({
+          name: state.meta?.title || runcard.name || "Untitled Runcard",
+          owner: state.meta?.owner || "",
+          draft: state
+        })
+      });
+    } catch (e) {
+      console.warn("Unable to sync draft", e);
+    }
+  }
+
+  async function openRuncard(sessionId, runcardId) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    if (!session || !isSessionUnlocked(sessionId)) return;
+    if (!session.runcards.length) await loadRuncardsForSession(sessionId);
+    const runcard = session.runcards.find((item) => item.id === runcardId);
+    if (!runcard) return;
+    manager.activeSessionId = sessionId;
+    manager.activeRuncardId = runcardId;
+    manager.selectedSessionId = sessionId;
+    state = clone(runcard.draft || createDefaultState());
+    activeCardIndex = 0;
+    pendingRecipeCardId = null;
+    saveManager();
+    showEditor();
+    renderAll();
+  }
+
+  async function showManager() {
+    syncCurrentRuncardDraft();
+    els.projectManager.classList.remove("hidden");
+    els.editorShell.classList.add("hidden");
+    if (manager.selectedSessionId && isSessionUnlocked(manager.selectedSessionId)) {
+      try { await loadRuncardsForSession(manager.selectedSessionId); }
+      catch (e) { console.warn("Unable to refresh runcards", e); }
+    }
+    renderProjectManager();
+  }
+
+  function showEditor() {
+    els.projectManager.classList.add("hidden");
+    els.editorShell.classList.remove("hidden");
+  }
+
+  function requireSelectedSession() {
+    const session = selectedSession();
+    if (!session) {
+      alert("Create or select a session first.");
+      return null;
+    }
+    return session;
+  }
+
+  // ── Project manager ───────────────────────────────────────────────────────
+
+  function openModal(title, subtitle, bodyBuilder) {
+    setText(els.modalTitle, title);
+    setText(els.modalSubtitle, subtitle || "");
+    els.modalBody.innerHTML = "";
+    bodyBuilder(els.modalBody);
+    els.modalBackdrop.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    els.modalBackdrop.classList.add("hidden");
+    els.modalBody.innerHTML = "";
+  }
+
+  function field(label, input) {
+    const wrap = document.createElement("label");
+    wrap.className = "field";
+    const span = document.createElement("span");
+    setText(span, label);
+    wrap.append(span, input);
+    return wrap;
+  }
+
+  function textField(value = "", placeholder = "", multiline = false) {
+    const input = document.createElement(multiline ? "textarea" : "input");
+    if (!multiline) input.type = "text";
+    input.value = value || "";
+    input.placeholder = placeholder || "";
+    return input;
+  }
+
+  function passwordField(placeholder = "") {
+    const input = document.createElement("input");
+    input.type = "password";
+    input.placeholder = placeholder;
+    return input;
+  }
+
+  function showError(form, message) {
+    let err = form.querySelector(".form-error");
+    if (!err) {
+      err = document.createElement("div");
+      err.className = "form-error";
+      form.prepend(err);
+    }
+    setText(err, message);
+  }
+
+  async function createSession(name, password) {
+    const created = await apiFetch("/api/projects", {
+      method: "POST",
+      body: JSON.stringify({ name: name.trim(), password, password2: password })
+    });
+    const session = {
+      id: created.id,
+      name: created.name,
+      requiresPassword: !!created.requires_password,
+      createdAt: created.created_at,
+      updatedAt: created.updated_at,
+      runcardCount: 0,
+      lastActivity: null,
+      runcards: []
+    };
+    manager.sessions.unshift(session);
+    manager.selectedSessionId = session.id;
+    manager.unlockedSessions[session.id] = true;
+    sessionPassHashes[session.id] = password ? await sha256(password) : "";
+    saveManager();
+    renderProjectManager();
+    return session;
+  }
+
+  async function createRuncard(sessionId, name, description, owner, draftOverride = null) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    if (!session) return null;
+    const draft = draftOverride || createDefaultState();
+    draft.meta = draft.meta || {};
+    draft.meta.title = name.trim();
+    draft.meta.owner = owner.trim();
+    const created = await apiFetch(`/api/projects/${sessionId}/runcards`, {
+      method: "POST",
+      headers: sessionHeaders(sessionId),
+      body: JSON.stringify({ name: name.trim(), description: description.trim(), owner: owner.trim(), draft })
+    });
+    const runcard = normalizeRuncardFromApi(created);
+    session.runcards.unshift(runcard);
+    session.updatedAt = runcard.updatedAt;
+    session.runcardCount = session.runcards.length;
+    saveManager();
+    renderProjectManager();
+    return runcard;
+  }
+
+  async function deleteRuncard(sessionId, runcardId) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    if (!session) return;
+    const runcard = session.runcards.find((item) => item.id === runcardId);
+    if (!runcard) return;
+    if (!confirm(`Delete runcard "${runcard.name}" and all versions? This cannot be undone.`)) return;
+    await apiFetch(`/api/projects/${sessionId}/runcards/${runcardId}`, {
+      method: "DELETE",
+      headers: sessionHeaders(sessionId)
+    });
+    session.runcards = session.runcards.filter((item) => item.id !== runcardId);
+    session.runcardCount = session.runcards.length;
+    if (manager.activeSessionId === sessionId && manager.activeRuncardId === runcardId) {
+      manager.activeSessionId = null;
+      manager.activeRuncardId = null;
+    }
+    session.updatedAt = nowIso();
+    saveManager();
+    renderProjectManager();
+  }
+
+  async function deleteSession(sessionId) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    if (!session) return;
+    if (!confirm(`Delete session "${session.name}" and all runcards? This cannot be undone.`)) return;
+    await apiFetch(`/api/projects/${sessionId}`, {
+      method: "DELETE",
+      headers: sessionHeaders(sessionId)
+    });
+    manager.sessions = manager.sessions.filter((item) => item.id !== sessionId);
+    delete manager.unlockedSessions[sessionId];
+    delete sessionPassHashes[sessionId];
+    if (manager.selectedSessionId === sessionId) manager.selectedSessionId = manager.sessions[0]?.id || null;
+    if (manager.activeSessionId === sessionId) {
+      manager.activeSessionId = null;
+      manager.activeRuncardId = null;
+    }
+    saveManager();
+    renderProjectManager();
+  }
+
+  async function commitCurrentRuncard(label, overwrite) {
+    syncCurrentRuncardDraft();
+    const runcard = currentRuncard();
+    const session = currentSession();
+    if (!runcard || !session) return;
+    if (draftSaveTimer) {
+      clearTimeout(draftSaveTimer);
+      draftSaveTimer = null;
+    }
+    const response = await apiFetch(`/api/projects/${session.id}/runcards/${runcard.id}/commit`, {
+      method: "POST",
+      headers: sessionHeaders(session.id),
+      body: JSON.stringify({
+        label: label.trim(),
+        state,
+        summary: draftSummary(state),
+        overwrite
+      })
+    });
+    const updated = normalizeRuncardFromApi(response.runcard);
+    const index = session.runcards.findIndex((item) => item.id === runcard.id);
+    if (index >= 0) session.runcards[index] = updated;
+    manager.activeRuncardId = updated.id;
+    session.updatedAt = updated.updatedAt;
+    saveManager();
+    renderProjectManager();
+  }
+
+  async function restoreVersion(sessionId, runcardId, versionNumber) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    const runcard = session?.runcards.find((item) => item.id === runcardId);
+    const version = runcard?.versions.find((item) => item.versionNumber === versionNumber);
+    if (!session || !runcard || !version) return;
+    if (!confirm(`Open v${versionNumber} as the current draft for "${runcard.name}"?`)) return;
+    const response = await apiFetch(`/api/projects/${sessionId}/runcards/${runcardId}/restore/${versionNumber}`, {
+      method: "POST",
+      headers: sessionHeaders(sessionId)
+    });
+    const updated = normalizeRuncardFromApi(response.runcard);
+    const index = session.runcards.findIndex((item) => item.id === runcardId);
+    if (index >= 0) session.runcards[index] = updated;
+    session.updatedAt = updated.updatedAt;
+    saveManager();
+    await openRuncard(sessionId, runcardId);
+  }
+
+  function renderProjectManager() {
+    setText(els.managerSessionCount, `${manager.sessions.length}`);
+    els.managerSessionList.innerHTML = "";
+    if (!manager.sessions.length) {
+      const empty = document.createElement("div");
+      empty.className = "manager-empty";
+      setText(empty, "No sessions yet.");
+      els.managerSessionList.appendChild(empty);
+    }
+    manager.sessions.forEach((session) => {
+      const card = document.createElement("article");
+      card.className = `manager-card ${session.id === manager.selectedSessionId ? "active" : ""}`.trim();
+      const head = document.createElement("div");
+      head.className = "manager-card-head";
+      const body = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "manager-card-title";
+      setText(title, session.name);
+      const meta = document.createElement("div");
+      meta.className = "manager-card-meta";
+      setText(meta, `${session.runcards.length} runcards · Updated ${formatDate(session.updatedAt)}`);
+      body.append(title, meta);
+      const lock = document.createElement("span");
+      lock.className = "template-tag tag-clean";
+      setText(lock, isSessionUnlocked(session.id) ? "Unlocked" : "Locked");
+      head.append(body, lock);
+      const actions = document.createElement("div");
+      actions.className = "manager-card-actions";
+      const select = document.createElement("button");
+      select.type = "button";
+      select.className = "small-button";
+      setText(select, isSessionUnlocked(session.id) ? "Open" : "Unlock");
+      select.addEventListener("click", async () => {
+        if (isSessionUnlocked(session.id)) {
+          manager.selectedSessionId = session.id;
+          saveManager();
+          try { await loadRuncardsForSession(session.id); }
+          catch (e) { alert(e.message); }
+          renderProjectManager();
+        } else {
+          showUnlockSessionModal(session);
+        }
+      });
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "small-button danger-text";
+      setText(del, "Delete");
+      del.addEventListener("click", () => { void deleteSession(session.id).catch((e) => alert(e.message)); });
+      actions.append(select, del);
+      card.append(head, actions);
+      els.managerSessionList.appendChild(card);
+    });
+
+    const session = selectedSession();
+    els.newRuncardBtn.disabled = !session || !isSessionUnlocked(session.id);
+    if (!session) {
+      setText(els.managerSessionTitle, "Select a Session");
+      setText(els.managerSessionMeta, "");
+      els.managerRuncardList.innerHTML = "";
+      const empty = document.createElement("div");
+      empty.className = "manager-empty";
+      setText(empty, "Create a session to start building runcards.");
+      els.managerRuncardList.appendChild(empty);
+      return;
+    }
+    setText(els.managerSessionTitle, session.name);
+    setText(els.managerSessionMeta, `Created ${formatDate(session.createdAt)}`);
+    renderRuncardList(session);
+  }
+
+  function renderRuncardList(session) {
+    els.managerRuncardList.innerHTML = "";
+    if (!isSessionUnlocked(session.id)) {
+      const empty = document.createElement("div");
+      empty.className = "manager-empty";
+      setText(empty, "Unlock this session to view runcards.");
+      els.managerRuncardList.appendChild(empty);
+      return;
+    }
+    if (!session.runcards.length) {
+      const empty = document.createElement("div");
+      empty.className = "manager-empty";
+      setText(empty, "No runcards in this session yet.");
+      els.managerRuncardList.appendChild(empty);
+      return;
+    }
+    session.runcards.forEach((runcard) => {
+      const card = document.createElement("article");
+      card.className = "manager-card";
+      const head = document.createElement("div");
+      head.className = "manager-card-head";
+      const body = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "manager-card-title";
+      setText(title, runcard.name);
+      const meta = document.createElement("div");
+      meta.className = "manager-card-meta";
+      setText(meta, `${draftSummary(runcard.draft)} · ${runcard.versions.length} versions · Updated ${formatDate(runcard.updatedAt)}`);
+      body.append(title, meta);
+      const badge = document.createElement("span");
+      badge.className = "template-tag tag-clear";
+      setText(badge, runcard.currentVersionNumber ? `v${runcard.currentVersionNumber}` : "Draft");
+      head.append(body, badge);
+
+      const actions = document.createElement("div");
+      actions.className = "manager-card-actions";
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "primary-button small-button";
+      setText(open, "Open Editor");
+      open.addEventListener("click", () => { void openRuncard(session.id, runcard.id).catch((e) => alert(e.message)); });
+      const history = document.createElement("button");
+      history.type = "button";
+      history.className = "small-button";
+      setText(history, "History");
+      history.addEventListener("click", () => showHistoryModal(session.id, runcard.id));
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "small-button danger-text";
+      setText(del, "Delete");
+      del.addEventListener("click", () => { void deleteRuncard(session.id, runcard.id).catch((e) => alert(e.message)); });
+      actions.append(open, history, del);
+      if (runcard.description) {
+        const desc = document.createElement("div");
+        desc.className = "manager-card-meta";
+        setText(desc, runcard.description);
+        card.append(head, desc, actions);
+      } else {
+        card.append(head, actions);
+      }
+      els.managerRuncardList.appendChild(card);
+    });
+  }
+
+  function showNewSessionModal() {
+    openModal("New Session", "Create a password-protected project container.", (body) => {
+      const form = document.createElement("form");
+      form.className = "modal-form";
+      const name = textField("", "e.g. GaN-HEMT-Batch-01");
+      const pw = passwordField("Optional session password");
+      const pw2 = passwordField("Repeat password");
+      const actions = document.createElement("div");
+      actions.className = "modal-actions";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "ghost-button";
+      setText(cancel, "Cancel");
+      cancel.addEventListener("click", closeModal);
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "primary-button";
+      setText(submit, "Create Session");
+      actions.append(cancel, submit);
+      form.append(field("Session Name", name), field("Password", pw), field("Confirm Password", pw2), actions);
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!name.value.trim()) return showError(form, "Session name is required.");
+        if (pw.value !== pw2.value) return showError(form, "Passwords do not match.");
+        try {
+          await createSession(name.value, pw.value);
+          closeModal();
+        } catch (e) {
+          showError(form, e.message);
+        }
+      });
+      body.appendChild(form);
+      name.focus();
+    });
+  }
+
+  function showUnlockSessionModal(session) {
+    openModal("Unlock Session", `Enter the password for ${session.name}.`, (body) => {
+      const form = document.createElement("form");
+      form.className = "modal-form";
+      const pw = passwordField("Session password");
+      const actions = document.createElement("div");
+      actions.className = "modal-actions";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "ghost-button";
+      setText(cancel, "Cancel");
+      cancel.addEventListener("click", closeModal);
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "primary-button";
+      setText(submit, "Unlock");
+      actions.append(cancel, submit);
+      form.append(field("Password", pw), actions);
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        try {
+          const result = await apiFetch(`/api/projects/${session.id}/verify`, {
+            method: "POST",
+            body: JSON.stringify({ password: pw.value })
+          });
+          if (!result.granted) return showError(form, "Incorrect session password.");
+          manager.unlockedSessions[session.id] = true;
+          manager.selectedSessionId = session.id;
+          sessionPassHashes[session.id] = result.session_hash || await sha256(pw.value);
+          await loadRuncardsForSession(session.id);
+          saveManager();
+          closeModal();
+          renderProjectManager();
+        } catch (e) {
+          showError(form, e.message);
+        }
+      });
+      body.appendChild(form);
+      pw.focus();
+    });
+  }
+
+  function showNewRuncardModal() {
+    const session = requireSelectedSession();
+    if (!session || !isSessionUnlocked(session.id)) return;
+    openModal("New Runcard", `Create a runcard inside ${session.name}.`, (body) => {
+      const form = document.createElement("form");
+      form.className = "modal-form";
+      const name = textField("", "e.g. DEPi Trigate process run");
+      const owner = textField("", "Owner");
+      const desc = textField("", "Brief notes about this run...", true);
+      const actions = document.createElement("div");
+      actions.className = "modal-actions";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "ghost-button";
+      setText(cancel, "Cancel");
+      cancel.addEventListener("click", closeModal);
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "primary-button";
+      setText(submit, "Create Runcard");
+      actions.append(cancel, submit);
+      form.append(field("Runcard Name", name), field("Owner", owner), field("Description", desc), actions);
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!name.value.trim()) return showError(form, "Runcard name is required.");
+        try {
+          const runcard = await createRuncard(session.id, name.value, desc.value, owner.value);
+          closeModal();
+          if (runcard) await openRuncard(session.id, runcard.id);
+        } catch (e) {
+          showError(form, e.message);
+        }
+      });
+      body.appendChild(form);
+      name.focus();
+    });
+  }
+
+  function showCommitModal() {
+    const runcard = currentRuncard();
+    if (!runcard) return alert("Open a runcard before committing.");
+    openModal("Commit Version", "Save the current embedded builder state into this runcard's version history.", (body) => {
+      const form = document.createElement("form");
+      form.className = "modal-form";
+      const label = textField("", "e.g. v1 initial flow, changed COT-DEV recipe");
+      let mode = "new";
+      const modeWrap = document.createElement("div");
+      modeWrap.className = "segmented-control";
+      const newBtn = document.createElement("button");
+      newBtn.type = "button";
+      newBtn.className = "active";
+      setText(newBtn, "New Version");
+      const overwriteBtn = document.createElement("button");
+      overwriteBtn.type = "button";
+      setText(overwriteBtn, "Overwrite Current");
+      const setMode = (next) => {
+        mode = next;
+        newBtn.classList.toggle("active", mode === "new");
+        overwriteBtn.classList.toggle("active", mode === "overwrite");
+      };
+      newBtn.addEventListener("click", () => setMode("new"));
+      overwriteBtn.addEventListener("click", () => setMode("overwrite"));
+      overwriteBtn.disabled = !runcard.versions.length;
+      modeWrap.append(newBtn, overwriteBtn);
+      const actions = document.createElement("div");
+      actions.className = "modal-actions";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "ghost-button";
+      setText(cancel, "Cancel");
+      cancel.addEventListener("click", closeModal);
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "primary-button";
+      setText(submit, "Commit");
+      actions.append(cancel, submit);
+      form.append(field("Version Name", label), modeWrap, actions);
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!label.value.trim()) return showError(form, "Version name is required.");
+        try {
+          await commitCurrentRuncard(label.value, mode === "overwrite");
+          closeModal();
+          renderAll();
+        } catch (e) {
+          showError(form, e.message);
+        }
+      });
+      body.appendChild(form);
+      label.focus();
+    });
+  }
+
+  function showHistoryModal(sessionId = manager.activeSessionId, runcardId = manager.activeRuncardId) {
+    const session = manager.sessions.find((item) => item.id === sessionId);
+    const runcard = session?.runcards.find((item) => item.id === runcardId);
+    if (!session || !runcard) return alert("Open or select a runcard first.");
+    openModal("Version History", runcard.name, (body) => {
+      if (!runcard.versions.length) {
+        const empty = document.createElement("div");
+        empty.className = "manager-empty";
+        setText(empty, "No committed versions yet.");
+        body.appendChild(empty);
+        return;
+      }
+      const table = document.createElement("div");
+      table.className = "version-table";
+      [...runcard.versions].sort((a, b) => b.versionNumber - a.versionNumber).forEach((version) => {
+        const row = document.createElement("div");
+        row.className = "version-row";
+        const number = document.createElement("strong");
+        setText(number, `v${version.versionNumber}`);
+        const info = document.createElement("div");
+        const title = document.createElement("div");
+        setText(title, version.label);
+        const meta = document.createElement("span");
+        setText(meta, `${version.summary || ""} · ${formatDate(version.createdAt)}`);
+        info.append(title, meta);
+        const open = document.createElement("button");
+        open.type = "button";
+        open.className = "small-button";
+        setText(open, "Open");
+        open.addEventListener("click", () => {
+          closeModal();
+          void restoreVersion(session.id, runcard.id, version.versionNumber).catch((e) => alert(e.message));
+        });
+        row.append(number, info, open);
+        table.appendChild(row);
+      });
+      body.appendChild(table);
+    });
   }
 
   // ── Lookups ────────────────────────────────────────────────────────────────
@@ -1775,6 +2645,15 @@
   // ── Events & Init ──────────────────────────────────────────────────────────
 
   function bindEvents() {
+    els.newSessionBtn.addEventListener("click", showNewSessionModal);
+    els.newRuncardBtn.addEventListener("click", showNewRuncardModal);
+    els.managerHomeBtn.addEventListener("click", showManager);
+    els.commitBtn.addEventListener("click", showCommitModal);
+    els.historyBtn.addEventListener("click", () => showHistoryModal());
+    els.modalCloseBtn.addEventListener("click", closeModal);
+    els.modalBackdrop.addEventListener("click", (event) => {
+      if (event.target === els.modalBackdrop) closeModal();
+    });
     els.templateSearch.addEventListener("input", renderTemplateList);
     els.runcardTitle.addEventListener("input", () => { state.meta.title = els.runcardTitle.value; saveState(); });
     els.ownerInput.addEventListener("input", () => { state.meta.owner = els.ownerInput.value; saveState(); });
@@ -1814,14 +2693,33 @@
   function renderAll() {
     els.runcardTitle.value = state.meta.title || "";
     els.ownerInput.value = state.meta.owner || "";
-    setText(els.sourceLabel, "");
+    const session = currentSession();
+    const runcard = currentRuncard();
+    setText(els.sourceLabel, session && runcard
+      ? `${session.name} / ${runcard.name} · ${runcard.currentVersionNumber ? `v${runcard.currentVersionNumber}` : "Draft"}`
+      : ""
+    );
     renderTemplateList();
     renderPendingBanner();
     renderRecipeBrowserCards();
     renderCards();
   }
 
-  loadState();
-  bindEvents();
-  renderAll();
+  async function init() {
+    bindEvents();
+    try {
+      await loadManager();
+      await bootstrapFromLegacyState();
+      if (manager.activeSessionId && manager.activeRuncardId && currentRuncard()) {
+        state = clone(currentRuncard().draft || createDefaultState());
+      }
+      await showManager();
+    } catch (e) {
+      alert(`Unable to load Runcard backend: ${e.message}`);
+      loadManagerFromLocalFallback();
+      showManager();
+    }
+  }
+
+  void init();
 })();
